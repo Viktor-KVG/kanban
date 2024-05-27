@@ -6,27 +6,30 @@ info:
 servers:
   - url: https://localhost:8000/api/v1
 tags:
-  - name: User
+  - name: user
     description: user account
       
-  - name: Board
+  - name: board
     description: board
     
-  - name: Column
+  - name: column
     description: task stack
     
-  - name: Ticket
+  - name: ticket
     description: task information
     
-  - name: Comment
+  - name: comment
     description: comment on the task    
 paths:
-  /user/profile/:
+
+
+
+  /user: 
     get:
       tags:
         - user
-      summary: Get user
-      description: 'displays information about the user in his profile'
+      summary: Your profile
+      description: 'your profile'
       responses:
         '200':
           description: successful operation
@@ -35,37 +38,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'          
         '400':
-          description: Invalid user
-
-  /user/{login}:
-    get:
-      tags:
-        - admin
-      summary: Find user by login for admin
-      description: Returns a single user
-      security:
-        - bearerAuth: []  
-      parameters:
-        - name: login
-          in: path
-          description: login of user to return
-          required: true
-          schema:
-            type: string
-            
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'          
-
-        '400':
-          description: Invalid login supplied
-        '404':
-          description: User not found
-  /user/create: 
+          description: Invalid user    
+  
     post:
       tags:
         - user
@@ -93,7 +67,103 @@ paths:
         '404':
           description: User not found
           
-  /user/update/{user_id}:        
+  /user/{login}:
+    get:
+      tags:
+        - user
+      summary: Find user by login for admin
+      description: Returns a single user
+      security:
+        - bearerAuth: []  
+      parameters:
+        - name: login
+          in: path
+          description: login of user to return
+          required: true
+          schema:
+            type: string
+            
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'          
+
+        '400':
+          description: Invalid login supplied
+        '404':
+          description: User not found
+
+  /user/list:
+    get:
+      tags:
+        - user
+      summary: search for users by parameters
+      description: Returns user
+      security:
+        - bearerAuth: []  
+      parameters:
+        - name: user_id
+          in: query
+          description: id of user to return
+          required: false
+          schema:
+            type: integer
+        - name: login
+          in: query
+          description: login of user to return
+          required: false
+          schema:
+            type: string            
+        - name: email
+          in: query
+          description: email of user to return
+          required: false
+          schema:
+            type: string            
+            
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'          
+
+        '400':
+          description: Input Error
+        '404':
+          description: User not found
+
+          
+  /user/{user_id}:
+  
+    get:
+      tags:
+        - user
+      summary: Get user
+      description: 'displays information about the user in his profile'
+      parameters:
+        - name: user_id
+          in: path
+          description: that shows the user's profile
+          required: true
+          schema:
+            type: string      
+      
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'          
+        '400':
+          description: Invalid user  
     put:
       tags:
         - user
@@ -119,7 +189,7 @@ paths:
         '200':
           description: successful operation
 
-  /user/delete/{user_id}:        
+ 
     delete:
       tags:
         - user
@@ -141,13 +211,15 @@ paths:
         '400':
           description: Invalid user value
           
-  /user/logIn:
-    post:
+  /user/login:
+    get:
       tags:
         - user
       summary: Logs user into the system
       description: ''
       operationId: loginUser
+      security:
+        - bearerAuth: []      
       parameters:
         - name: login
           in: query
@@ -177,35 +249,102 @@ paths:
           description: Authentication error, incorrect credentials
         '500':
           description: Internal Server Error
-  /user/logOut:
+  /user/logout:
     get:
       tags:
         - user
       summary: Logs out current logged in user session
       description: ''
       operationId: logoutUser
+      security:
+        - bearerAuth: []
       parameters: []
       responses:
         default:
           description: successful operation
           
-  /board/:
+  /board:
     get:
       tags:
         - board
-      summary: task board
+      summary: your task boards
       responses:
         '200':
           description: results on request
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Board'          
+                $ref: '#/components/schemas/Board'          
         '400':
           description: The request failed
           
+    post:
+      tags:
+        - board
+      summary: Сreating a new board
+      description: This can only be done by the logged in user
+      operationId: CreatingOrder
+      security:
+        - bearerAuth: []    
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Board'
+
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'
+        '400':
+          description: Invalid input
+        '409':
+          description: Such a board already exists                     
+          
+          
+
+  /board/list:
+    get:
+      tags:
+        - board
+      summary: search for boards by parameters
+      description: Returns board
+      security:
+        - bearerAuth: []  
+      parameters:
+        - name: board_id
+          in: query
+          description: id of board to return
+          required: false
+          schema:
+            type: integer
+        - name: title
+          in: query
+          description: title of board to return
+          required: false
+          schema:
+            type: string            
+     
+            
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Board'          
+
+        '400':
+          description: Input Error
+        '404':
+          description: User not found
+          
+
   /board/{board_id}:
     get:
       tags:
@@ -235,36 +374,8 @@ paths:
         '400':
           description: Invalid ID specified
         '404':
-          description: Board not found    
+          description: Board not found 
           
-  /board/create:
-    post:
-      tags:
-        - board
-      summary: Сreating a new board
-      description: This can only be done by the logged in user
-      operationId: CreatingOrder
-      security:
-        - bearerAuth: []    
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Board'
-
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Board'
-        '400':
-          description: Invalid input
-        '409':
-          description: Such a board already exists 
-         
-  /board/update/{board_id}:      
     put:
       tags:
         - board
@@ -281,10 +392,9 @@ paths:
           schema:
             type: integer
             example: 3
-
       responses:
         '200':
-          description: пboard parameters changed successfully
+          description: board parameters changed successfully
         '400':
           description: incorrect input
         '404':
@@ -294,9 +404,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Board'
-        description: Changed board parameters
+        description: Changed board parameters    
         
-  /board/delete/{board_id}:    
     delete:
       tags:
         - board
@@ -319,21 +428,36 @@ paths:
         '404':
           description: Board not found
         '500':
-          description: Internal Server Error   
+          description: Internal Server Error           
+          
 
-  /board/board_id/column:
+  /column/list:
     get:
       tags:
         - column
-      summary: board column
+      summary: displays a list of columns on the board
+      description: Returns columns
+      security:
+        - bearerAuth: []  
       parameters:
-        - name: id
+        - name: board_id
           in: query
-          description: ID boards
-          required: true
+          description: id of board to return
+          required: false
           schema:
             type: integer
-            example: 2
+        - name: column_id
+          in: query
+          description: id of column to return
+          required: false
+          schema:
+            type: integer            
+        - name: title column
+          in: query
+          description: title of column to return
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: View all columns within a board
@@ -346,11 +470,39 @@ paths:
         '400':
           description: The request failed
           
-  /board/board_id/column/{column_id}/:
+  /column:
+    post:
+      tags:
+        - column
+      summary: Сreating a new column
+      description: This can only be done by the logged in user
+      operationId: CreatingColumn
+      security:
+        - bearerAuth: []    
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Column'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Column'
+        '400':
+          description: Invalid input
+        '409':
+          description: Such a column already exists           
+          
+  /column/{column_id}/:
     get:
       tags:
         - column
       summary: search column by ID
+      security:
+        - bearerAuth: []      
       parameters:
         - name: column_id
           in: path
@@ -368,35 +520,7 @@ paths:
                 $ref: '#/components/schemas/Column'          
         '400':
           description: The request failed
-          
-  /board/board_id/column/create:
-    post:
-      tags:
-        - column
-      summary: Сreating a new column
-      description: This can only be done by the logged in user
-      operationId: CreatingColumn
-      security:
-        - bearerAuth: []    
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Column'
-
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Column'
-        '400':
-          description: Invalid input
-        '409':
-          description: Such a column already exists 
-         
-  /board/board_id/column/{column_id}/update:      
+        
     put:
       tags:
         - column
@@ -413,7 +537,6 @@ paths:
           schema:
             type: integer
             example: 3
-
       responses:
         '200':
           description: пboard parameters changed successfully
@@ -426,9 +549,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Column'
-        description: Changed column parameters
+        description: Changed column parameters 
         
-  /board/board_id/column/{column_id}/delete:    
     delete:
       tags:
         - column
@@ -451,22 +573,41 @@ paths:
         '404':
           description: Column not found
         '500':
-          description: Internal Server Error    
-        
-        
-  /board/board_id/column/column_id/ticket:
+          description: Internal Server Error            
+
+  /ticket/list:
     get:
       tags:
         - ticket
-      summary: column ticket
+      summary: displays a list of tickets on the column
+      description: Returns ticket
+      security:
+        - bearerAuth: []  
       parameters:
-        - name: id
+        - name: board_id
           in: query
-          description: ID ticket
-          required: true
+          description: id of board to return
+          required: false
           schema:
             type: integer
-            example: 2
+        - name: column_id
+          in: query
+          description: id of column to return
+          required: false
+          schema:
+            type: integer
+        - name: ticket_id
+          in: query
+          description: id of ticket to return
+          required: false
+          schema:
+            type: integer            
+        - name: title ticket
+          in: query
+          description: title of ticket to return
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: View all tickets within a column
@@ -478,31 +619,8 @@ paths:
                   $ref: '#/components/schemas/Ticket'          
         '400':
           description: The request failed
-          
-  /board/board_id/column/column_id/ticket/{ticket_id}:
-    get:
-      tags:
-        - ticket
-      summary: search ticket by ID
-      parameters:
-        - name: ticket_id
-          in: path
-          description: ID ticket
-          required: true
-          schema:
-            type: integer
-            example: 2
-      responses:
-        '200':
-          description: ticket found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Ticket'          
-        '400':
-          description: The request failed
-          
-  /board/board_id/column/column_id/ticket/create:
+
+  /ticket:
     post:
       tags:
         - ticket
@@ -527,9 +645,31 @@ paths:
         '400':
           description: Invalid input
         '409':
-          description: Such a ticket already exists 
-         
-  /board/board_id/column/column_id/ticket/{ticket_id}/update:      
+          description: Such a ticket already exists           
+          
+  /ticket/{ticket_id}:
+    get:
+      tags:
+        - ticket
+      summary: search ticket by ID
+      parameters:
+        - name: ticket_id
+          in: path
+          description: ID ticket
+          required: true
+          schema:
+            type: integer
+            example: 2
+      responses:
+        '200':
+          description: ticket found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'          
+        '400':
+          description: The request failed
+          
     put:
       tags:
         - ticket
@@ -546,7 +686,6 @@ paths:
           schema:
             type: integer
             example: 3
-
       responses:
         '200':
           description: ticket parameters changed successfully
@@ -559,9 +698,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Column'
-        description: Changed ticket parameters
+        description: Changed ticket parameters   
         
-  /board/board_id/column/column_id/ticket/{ticket_id}/delete:    
     delete:
       tags:
         - ticket
@@ -584,13 +722,14 @@ paths:
         '404':
           description: Ticket not found
         '500':
-          description: Internal Server Error    
+          description: Internal Server Error            
+          
 
-  /comment:
+  /comment/list:
     get:
       tags:
         - comment
-      summary: ticket comment
+      summary: list of comments for the task
 
       responses:
         '200':
@@ -604,30 +743,7 @@ paths:
         '400':
           description: The request failed
           
-  /comment/{comment_id}:
-    get:
-      tags:
-        - comment
-      summary: search comment by ID
-      parameters:
-        - name: comment_id
-          in: path
-          description: ID comment
-          required: true
-          schema:
-            type: integer
-            example: 2
-      responses:
-        '200':
-          description: comment found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Comment'          
-        '400':
-          description: The request failed
-          
-  /comment/create:
+  /comment:          
     post:
       tags:
         - comment
@@ -652,9 +768,32 @@ paths:
         '400':
           description: Invalid input
         '409':
-          description: Such a ticket already exists 
-         
-  /comment/{comment_id}/update:      
+          description: Such a ticket already exists           
+          
+  /comment/{comment_id}:
+    get:
+      tags:
+        - comment
+      summary: search comment by ID
+      parameters:
+        - name: comment_id
+          in: path
+          description: ID comment
+          required: true
+          schema:
+            type: integer
+            example: 2
+      responses:
+        '200':
+          description: comment found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'          
+        '400':
+          description: The request failed
+          
+
     put:
       tags:
         - comment
@@ -686,7 +825,6 @@ paths:
               $ref: '#/components/schemas/Comment'
         description: Changed ticket parameters
         
-  /comment/{comment_id}/delete:    
     delete:
       tags:
         - comment
@@ -722,7 +860,7 @@ components:
           example: 10
         title:
           type: string
-          example: Title
+          example: Title Board
         created_at:
           type: string
           format: date-time
@@ -746,7 +884,7 @@ components:
           example: 10
         title:
           type: string
-          example: Title
+          example: Title Column
         created_at:
           type: string
           format: date-time
@@ -770,7 +908,7 @@ components:
           example: 10
         title:
           type: string
-          example: Title
+          example: Title Ticket
         created_at:
           type: string
           format: date-time
