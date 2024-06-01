@@ -314,19 +314,7 @@ paths:
       description: Returns board
       security:
         - bearerAuth: []  
-      parameters:
-        - name: board_id
-          in: query
-          description: id of board to return
-          required: false
-          schema:
-            type: integer
-        - name: title
-          in: query
-          description: title of board to return
-          required: false
-          schema:
-            type: string            
+    
      
             
       responses:
@@ -394,7 +382,7 @@ paths:
             example: 3
       responses:
         '200':
-          description: board parameters changed successfully
+          description: пboard parameters changed successfully
         '400':
           description: incorrect input
         '404':
@@ -431,7 +419,7 @@ paths:
           description: Internal Server Error           
           
 
-  /column/list:
+  /board/board_id/column/list:
     get:
       tags:
         - column
@@ -439,25 +427,7 @@ paths:
       description: Returns columns
       security:
         - bearerAuth: []  
-      parameters:
-        - name: board_id
-          in: query
-          description: id of board to return
-          required: false
-          schema:
-            type: integer
-        - name: column_id
-          in: query
-          description: id of column to return
-          required: false
-          schema:
-            type: integer            
-        - name: title column
-          in: query
-          description: title of column to return
-          required: false
-          schema:
-            type: string
+
       responses:
         '200':
           description: View all columns within a board
@@ -470,7 +440,7 @@ paths:
         '400':
           description: The request failed
           
-  /column:
+  /board/board_id/column:
     post:
       tags:
         - column
@@ -496,7 +466,7 @@ paths:
         '409':
           description: Such a column already exists           
           
-  /column/{column_id}/:
+  /board/board_id/column/{column_id}/:
     get:
       tags:
         - column
@@ -575,7 +545,7 @@ paths:
         '500':
           description: Internal Server Error            
 
-  /ticket/list:
+  /board/board_id/column/column_id/ticket/list:
     get:
       tags:
         - ticket
@@ -583,31 +553,7 @@ paths:
       description: Returns ticket
       security:
         - bearerAuth: []  
-      parameters:
-        - name: board_id
-          in: query
-          description: id of board to return
-          required: false
-          schema:
-            type: integer
-        - name: column_id
-          in: query
-          description: id of column to return
-          required: false
-          schema:
-            type: integer
-        - name: ticket_id
-          in: query
-          description: id of ticket to return
-          required: false
-          schema:
-            type: integer            
-        - name: title ticket
-          in: query
-          description: title of ticket to return
-          required: false
-          schema:
-            type: string
+
       responses:
         '200':
           description: View all tickets within a column
@@ -620,7 +566,7 @@ paths:
         '400':
           description: The request failed
 
-  /ticket:
+  /board/board_id/column/column_id/ticket:
     post:
       tags:
         - ticket
@@ -647,7 +593,7 @@ paths:
         '409':
           description: Such a ticket already exists           
           
-  /ticket/{ticket_id}:
+  /board/board_id/column/column_id/ticket/{ticket_id}:
     get:
       tags:
         - ticket
@@ -725,7 +671,7 @@ paths:
           description: Internal Server Error            
           
 
-  /comment/list:
+  /board/board_id/column/column_id/ticket/ticket_id/comment/list:
     get:
       tags:
         - comment
@@ -743,7 +689,7 @@ paths:
         '400':
           description: The request failed
           
-  /comment:          
+  /board/board_id/column/column_id/ticket/ticket_id/comment:          
     post:
       tags:
         - comment
@@ -770,7 +716,7 @@ paths:
         '409':
           description: Such a ticket already exists           
           
-  /comment/{comment_id}:
+  /board/board_id/column/column_id/ticket/ticket_id/comment/{comment_id}:
     get:
       tags:
         - comment
