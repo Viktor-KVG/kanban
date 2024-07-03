@@ -5,7 +5,9 @@ from typing import List
 import datetime
 
 
-SQL_DATABASE_URL = "postgresql+psycopg2://postgres:1234567890@localhost:5432/postgres"
+# SQL_DATABASE_URL = u"postgresql+psycopg2://postgres:1234567890@localhost:5432/postgres"
+# SQL_DATABASE_URL = 'postgresql+psycopg2://postgres:1234567890@172.17.0.1:9000/postgres'
+SQL_DATABASE_URL = 'postgresql+psycopg2://postgres:1234567890@172.28.0.1:9000/postgres'
 engine = create_engine(SQL_DATABASE_URL, echo=True)
 
 
@@ -15,9 +17,9 @@ Base = declarative_base()
 class UserModel(Base):
     __tablename__ = 'user'
     id: Mapped[int] = mapped_column(primary_key=True)
-    login: Mapped[str] = mapped_column(String(60), nullable=False)
+    login: Mapped[str] = mapped_column(String(60), nullable=False )
     password_hash: Mapped[str] = mapped_column(String(60), nullable=False)
-    email: Mapped[str] = mapped_column(String(160), nullable=False)
+    email: Mapped[str] = mapped_column(String(160), nullable=False) 
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
     is_admin: Mapped[bool] = mapped_column(default=False, nullable=False)
@@ -44,7 +46,7 @@ class BoardModel(Base):
 
 
 class ColumnModel(Base):
-    __tablename__ = 'column'
+    __tablename__ = 'column_board'
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(120))
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now())
@@ -60,7 +62,7 @@ class TicketModel(Base):
     title: Mapped[str] = mapped_column(String(120))
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
-    column_id: Mapped[int] = mapped_column(ForeignKey('column.id'))
+    column_id: Mapped[int] = mapped_column(ForeignKey('column_board.id'))
     description: Mapped[str] = mapped_column(nullable=False)
     author_id: Mapped[int] = mapped_column(ForeignKey('user.id'))
     deadline: Mapped[str] = mapped_column(nullable=True)
