@@ -1,0 +1,26 @@
+version: "3"
+services:
+  db:
+    image: postgres:14
+    container_name: kanban_db
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=1234567890
+      - POSTGRES_USER=postgres
+    volumes:
+      - $HOME/data:/var/lib/postgresql/data
+  app:
+    build: .
+    container_name: kanban_app
+    ports:
+       - 9000:8000
+    volumes:
+       -  .:/app
+    # tty и stdin_open нужны для работы в интерактивном режиме (аналог -it при запуске через docker)
+    tty: true
+    stdin_open: true
+    # Опция --reload для uvicorn будет перезагружать сервис при изменении исходников. Использовать только при разработке!
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      - db

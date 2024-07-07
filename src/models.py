@@ -1,14 +1,24 @@
-from sqlalchemy import create_engine, Column, Table, Integer, String, Boolean, ForeignKey, Float, \
-    DateTime, func, TIMESTAMP, UniqueConstraint
-from sqlalchemy.orm import Session, declarative_base, mapped_column, Mapped, relationship
 from typing import List
-import datetime
 
-
-# SQL_DATABASE_URL = u"postgresql+psycopg2://postgres:1234567890@localhost:5432/postgres"
-# SQL_DATABASE_URL = 'postgresql+psycopg2://postgres:1234567890@172.17.0.1:9000/postgres'
-SQL_DATABASE_URL = 'postgresql+psycopg2://postgres:1234567890@172.28.0.1:9000/postgres'
-engine = create_engine(SQL_DATABASE_URL, echo=True)
+from sqlalchemy import (
+    func,
+    Float,
+    Table,
+    Column,
+    String,
+    Integer,
+    Boolean,
+    DateTime,
+    TIMESTAMP,
+    ForeignKey,
+    UniqueConstraint,
+)
+from sqlalchemy.orm import (
+    Mapped,
+    relationship,
+    mapped_column,
+    declarative_base,
+)
 
 
 Base = declarative_base()
@@ -21,7 +31,7 @@ class UserModel(Base):
     password_hash: Mapped[str] = mapped_column(String(60), nullable=False)
     email: Mapped[str] = mapped_column(String(160), nullable=False) 
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now())
-    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
+    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
     is_admin: Mapped[bool] = mapped_column(default=False, nullable=False)
     boards: Mapped[List["BoardModel"]] = relationship(back_populates="user", secondary='others_users', uselist=True)
 
@@ -91,6 +101,3 @@ class CommentModel(Base):
     author_id: Mapped[int] = mapped_column(ForeignKey('user.id'))
     content: Mapped[str] = mapped_column(nullable=True)
     tickets: Mapped['TicketModel'] = relationship(back_populates='comments_list', uselist=False)
-
-
-print(engine)

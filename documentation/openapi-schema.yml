@@ -19,7 +19,7 @@ tags:
     description: task information
     
   - name: comment
-    description: comment on the task    
+    description: comment on the task
 paths:
 
 

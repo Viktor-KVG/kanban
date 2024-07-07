@@ -1,5 +1,5 @@
 from models import *
-from core import test_create_table
+from kanban.app._draft import test_create_table
 from sqlalchemy.orm import mapped_column
 
 
