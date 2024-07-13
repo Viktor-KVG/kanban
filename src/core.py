@@ -7,7 +7,7 @@ from hashlib import md5
 from sqlalchemy import select
 
 from src.models import UserModel
-from src.schemas import UserCreate
+from src.schemas import UserCreate, UserLogin
 from src.database import session_factory
 
 
@@ -31,3 +31,8 @@ def register_user(data: UserCreate) -> UserModel:
         session.commit()
         session.refresh(user)
         return user
+
+
+
+        
+ 

@@ -22,3 +22,7 @@ class UserCreateResponse(BaseModel):
 
     class Config:
         orm_mode: True
+
+
+class Token(BaseModel):
+    token: str
