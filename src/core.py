@@ -7,13 +7,13 @@ from hashlib import md5
 from sqlalchemy import select
 
 from src.models import UserModel
-from src.schemas import UserCreate, UserLogin
+from src.schemas import UserCreate, UserLogin, UserCreateResponse
 from src.database import session_factory
 
 
 def is_user_exist(data: UserCreate) -> bool:
     with session_factory() as session:
-        same_user = session.query(UserModel).where(UserModel.login==data.login).first()
+        same_user = session.query(UserModel).where(UserModel.login == data.login).first()
         if same_user:
             return True
         return False
