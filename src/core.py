@@ -7,7 +7,7 @@ from hashlib import md5
 from sqlalchemy import select
 
 from src.models import UserModel
-from src.schemas import UserCreate, UserLogin, UserCreateResponse
+from src.schemas import UserCreate, UserLogin, UserCreateResponse, UserLoginForAdmin
 from src.database import session_factory
 
 
@@ -31,6 +31,16 @@ def register_user(data: UserCreate) -> UserModel:
         session.commit()
         session.refresh(user)
         return user
+    
+
+def search_user_for_admin(data: UserLoginForAdmin):
+    with session_factory() as session:
+        search_login = session.query(UserModel).filter_by(login= data.login).first()
+        if search_login:
+            return search_login
+        return False
+
+        
 
 
 
