@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, status, HTTPException
 
-from src.auth.auth_jwt import user_login
+# from src.auth.auth_jwt import user_login
 from src.database import session_factory, get_db
 from src.models import UserModel
 from src.schemas import (
@@ -15,8 +15,11 @@ from src.schemas import (
     UserLogin,
     UserCreate,
     UserCreateResponse,
+    UserForAdmin,
+    UserLoginForAdmin
 )
 from src import core
+from src.auth import auth_jwt
 
 
 
@@ -35,7 +38,7 @@ def index():
     return "health check"
 
 
-@api_router.post("/user", response_model=UserCreateResponse)    #response_model=UserCreateResponse
+@api_router.post("/user", response_model=UserCreateResponse)   
 def create_user(data: UserCreate, db: Session = Depends(get_db)):
     # Вызов бизнес-логики по определению существования пользователя (функция is_user_exist)
     if core.is_user_exist(data):
@@ -52,10 +55,12 @@ def create_user(data: UserCreate, db: Session = Depends(get_db)):
 # @TODO переделать по аналогии с предыдущим EP
 @api_router.post("/user/login", response_model=Token)
 def user_login_jwt(data: UserLogin):
-    if user_login(data):
-        return {'token': user_login(data)}
+    func: dict = auth_jwt.user_login(data)
+
+    if func:
+        return {'token': func}
     
-    elif user_login(data) == False:
+    elif auth_jwt.user_login(data) is False:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail='Internal Server Error'
@@ -76,3 +81,25 @@ def user_login_jwt(data: UserLogin):
     # <<< конец бизнес-логики
 
         # @TODO вернуть jwt токен
+
+@api_router.post('/user/{login}', response_model=UserForAdmin)
+def user_login_for_admin(data: UserLoginForAdmin):
+    search_login = core.search_user_for_admin(data)
+    if search_login:
+        return search_login
+    
+    elif search_login == False:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Invalid login supplied'
+        )
+    
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_BAD_NOT_FOUND,
+            detail='User not found'
+        )
+
+
+
+
