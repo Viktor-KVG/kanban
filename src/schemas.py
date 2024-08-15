@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any, Optional, ClassVar, Union
 
+from fastapi import Query
 from pydantic import BaseModel, ConfigDict
 
 class BoardsModel(BaseModel):
@@ -13,15 +14,38 @@ class UserForAdmin(BaseModel):
     login: str
     email: str
     created_at: datetime
-    created_up: ClassVar[Union[datetime, None]]
+    created_up: Union[datetime, None] = Query(default=None)
     is_admin: bool
-    boads: ClassVar[Union[list[BoardsModel], None]]
+    boads: Union[list[BoardsModel], None] = Query(default=None)
 
     class Config:
         orm_mode: True
 
+class UserList(BaseModel):
+    # model_config = ConfigDict(ignored_types=(IgnoredType,))
+    id: int
+    login: str
+    email: str
+    created_at: datetime
+    created_up: Union[datetime, None] = Query(default=None)
+    is_admin: bool
+    boads: Union[list[BoardsModel], None] = Query(default=None)
+
+    class Config:
+        orm_mode: True        
+
 class UserLoginForAdmin(BaseModel):
     login: str
+
+
+class SearchUsersList(BaseModel):
+    id: int
+    login: str
+    email: str 
+    
+    class Config:
+        orm_mode: True         
+
 
 
 class UserLogin(BaseModel):

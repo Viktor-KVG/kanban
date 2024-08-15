@@ -7,7 +7,7 @@ from hashlib import md5
 from sqlalchemy import select
 
 from src.models import UserModel
-from src.schemas import UserCreate, UserLogin, UserCreateResponse, UserLoginForAdmin
+from src.schemas import UserCreate, UserLogin, UserCreateResponse, UserLoginForAdmin, SearchUsersList
 from src.database import session_factory
 
 
@@ -39,6 +39,21 @@ def search_user_for_admin(data: UserLoginForAdmin):
         if search_login:
             return search_login
         return False
+
+
+def search_list_users(data1: SearchUsersList):
+    with session_factory() as session:
+        search_users_id = session.query(UserModel).filter_by(id= data1.id)
+        search_user_login = session.query(UserModel).filter_by(login= data1.login)
+        search_user_email = session.query(UserModel).filter_by(email= data1.email)
+        all_users = session.query(UserModel).all()
+
+        if search_users_id or search_user_login or search_user_email:
+            return  all_users
+        return False
+
+
+   
 
         
 
