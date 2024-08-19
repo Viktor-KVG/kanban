@@ -27,12 +27,13 @@ class UserList(BaseModel):
     login: str
     email: str
     created_at: datetime
-    created_up: Union[datetime, None] = Query(default=None)
+    created_up: Union[datetime, None] = None
     is_admin: bool
-    boads: Union[list[BoardsModel], None] = Query(default=None)
+    boads: Union[list[BoardsModel], None] = None
 
     class Config:
-        orm_mode: True        
+        orm_mode: True 
+        from_attributes = True      
 
 class UserLoginForAdmin(BaseModel):
     login: str

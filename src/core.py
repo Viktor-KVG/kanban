@@ -7,7 +7,7 @@ from hashlib import md5
 from sqlalchemy import select
 
 from src.models import UserModel
-from src.schemas import UserCreate, UserLogin, UserCreateResponse, UserLoginForAdmin, SearchUsersList
+from src.schemas import UserCreate, UserLogin, UserCreateResponse, UserLoginForAdmin, SearchUsersList, UserList
 from src.database import session_factory
 
 
@@ -43,14 +43,24 @@ def search_user_for_admin(data: UserLoginForAdmin):
 
 def search_list_users(data1: SearchUsersList):
     with session_factory() as session:
-        search_users_id = session.query(UserModel).filter_by(id= data1.id)
-        search_user_login = session.query(UserModel).filter_by(login= data1.login)
-        search_user_email = session.query(UserModel).filter_by(email= data1.email)
-        all_users = session.query(UserModel).all()
+        query = session.query(UserModel)
 
-        if search_users_id or search_user_login or search_user_email:
-            return  all_users
-        return False
+        # Добавим условия к запросу, если они указаны
+        if data1.id:
+            query = query.filter(UserModel.id == data1.id)
+        if data1.login:
+            query = query.filter(UserModel.login == data1.login)
+        if data1.email:
+            query = query.filter(UserModel.email == data1.email)
+
+        # Получаем отфильтрованные результаты
+        filtered_users = query.all()  # Теперь это будет только те пользователи, которые соответствуют условиям
+
+        if filtered_users:
+            return [UserList.from_orm(user) for user in filtered_users]  # Возвращает только соответствующих пользователей
+
+        return False                   
+
 
 
    
