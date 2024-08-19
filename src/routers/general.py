@@ -3,9 +3,14 @@
 Например: routers/user.py, routers/board.py и т.д.
 """
 
+import hashlib
+from typing import Any
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import UJSONResponse
+import jwt
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends,  status, HTTPException
 
 # from src.auth.auth_jwt import user_login
 from src.database import session_factory, get_db
@@ -16,7 +21,9 @@ from src.schemas import (
     UserCreate,
     UserCreateResponse,
     UserForAdmin,
-    UserLoginForAdmin
+    UserLoginForAdmin,
+    SearchUsersList,
+    UserList
 )
 from src import core
 from src.auth import auth_jwt
@@ -55,12 +62,12 @@ def create_user(data: UserCreate, db: Session = Depends(get_db)):
 # @TODO переделать по аналогии с предыдущим EP
 @api_router.post("/user/login", response_model=Token)
 def user_login_jwt(data: UserLogin):
-    func: dict = auth_jwt.user_login(data)
+    func = auth_jwt.user_login(data)
 
     if func:
         return {'token': func}
     
-    elif auth_jwt.user_login(data) is False:
+    elif func == False:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail='Internal Server Error'
@@ -82,6 +89,26 @@ def user_login_jwt(data: UserLogin):
 
         # @TODO вернуть jwt токен
 
+
+@api_router.post("/user/list")
+def search_users_list(data1:SearchUsersList, id: int = None, login: str = None, email: str = None):
+    result_list = core.search_list_users(data1)
+    if result_list:
+        return  result_list
+    
+    elif result_list == False:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail='Input Error'
+        ) 
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='User not found'
+        )
+
+
+
 @api_router.post('/user/{login}', response_model=UserForAdmin)
 def user_login_for_admin(data: UserLoginForAdmin):
     search_login = core.search_user_for_admin(data)
@@ -99,6 +126,8 @@ def user_login_for_admin(data: UserLoginForAdmin):
             status_code=status.HTTP_404_BAD_NOT_FOUND,
             detail='User not found'
         )
+
+
 
 
 
