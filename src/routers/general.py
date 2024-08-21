@@ -17,6 +17,7 @@ from src.database import session_factory, get_db
 from src.models import UserModel
 from src.schemas import (
     Token,
+    UserId,
     UserLogin,
     UserCreate,
     UserCreateResponse,
@@ -59,8 +60,20 @@ def create_user(data: UserCreate, db: Session = Depends(get_db)):
         return user
 
 
+@api_router.get('/user/{user_id}')
+def search_user_id( id: int = None):
+    search_id = core.search_user_by_id(UserId(id=id))
+    if search_id:
+        return {'search_id':search_id}
+    
+    elif search_id == False:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Invalid user '
+        )
+
 # @TODO переделать по аналогии с предыдущим EP
-@api_router.post("/user/login", response_model=Token)
+@api_router.post("/user/login_jwt", response_model=Token)
 def user_login_jwt(data: UserLogin):
     func = auth_jwt.user_login(data)
 
@@ -126,8 +139,6 @@ def user_login_for_admin(data: UserLoginForAdmin):
             status_code=status.HTTP_404_BAD_NOT_FOUND,
             detail='User not found'
         )
-
-
 
 
 
