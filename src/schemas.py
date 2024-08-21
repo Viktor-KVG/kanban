@@ -19,7 +19,7 @@ class UserForAdmin(BaseModel):
     boads: Union[list[BoardsModel], None] = Query(default=None)
 
     class Config:
-        orm_mode: True
+        from_attributes = True 
 
 class UserList(BaseModel):
     # model_config = ConfigDict(ignored_types=(IgnoredType,))
@@ -32,7 +32,7 @@ class UserList(BaseModel):
     boads: Union[list[BoardsModel], None] = None
 
     class Config:
-        orm_mode: True 
+
         from_attributes = True      
 
 class UserLoginForAdmin(BaseModel):
@@ -45,7 +45,7 @@ class SearchUsersList(BaseModel):
     email: str 
     
     class Config:
-        orm_mode: True         
+        from_attributes = True          
 
 
 
@@ -54,7 +54,7 @@ class UserLogin(BaseModel):
     password: str
 
     class Config:
-        orm_mode: True
+        from_attributes = True 
 
 
 
@@ -65,7 +65,7 @@ class UserCreate(BaseModel):
 
    
     class Config:
-        orm_mode: True
+        from_attributes = True 
 
 
 
@@ -77,12 +77,11 @@ class UserCreateResponse(BaseModel):
 
 
     class Config:
-        orm_mode: True
+        from_attributes = True 
 
 
 class Token(BaseModel):
     token: str
 
-    # class Config:
-    #     orm_mode: True
-
+class UserId(BaseModel):
+    id: int

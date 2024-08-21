@@ -7,7 +7,7 @@ from hashlib import md5
 from sqlalchemy import select
 
 from src.models import UserModel
-from src.schemas import UserCreate, UserLogin, UserCreateResponse, UserLoginForAdmin, SearchUsersList, UserList
+from src.schemas import UserCreate, UserId, UserLogin, UserCreateResponse, UserLoginForAdmin, SearchUsersList, UserList
 from src.database import session_factory
 
 
@@ -61,6 +61,21 @@ def search_list_users(data1: SearchUsersList):
 
         return False                   
 
+
+def search_user_by_id(data: UserId):
+    with session_factory() as session:
+        query = session.query(UserModel)
+
+        if data.id:
+            query = query.filter(UserModel.id == data.id)
+
+        result_id = query.first()
+
+        if result_id:
+            print(result_id)
+            return UserList.from_orm(result_id) 
+
+        return False    
 
 
    
