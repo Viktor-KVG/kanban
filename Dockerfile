@@ -1,34 +1,20 @@
-# Используем базоый образ на основе дистрибутива bookworm (debian 12)
-FROM python:3.9.19-bookworm
+FROM python:3.11.9-alpine3.19
 
-# Обновляем системные пакеты
-RUN apt update \
-    && apt -y upgrade\
-    && apt install -y htop
-# Обновляем pip до фиксированной версии
-RUN pip install pip==24.0
-# Создаём технического пользователя, от имени которого будет работать сервис (не root)
-RUN useradd -s /bin/bash -m kanban
 
-# Создаём директорию для проекта и меняем владельца с root на технического пользователя
-RUN mkdir -p /app
-# Назначаем директорию проекта рабочей директорией
-WORKDIR /app/
+RUN pip install --upgrade pip
 
-# Копируем в директорию для проекта файл с указанием зависимостей для python
-COPY ./requirements.txt /app/requirements.txt
-# Устанавливаем все python зависимости
-RUN pip install -r requirements.txt
-# Удаляем файл с указанием зависимостей
-RUN rm /app/requirements.txt
+# Копируем файл requirements.txt в контейнер
+COPY requirements.txt /kanban-main/requirements.txt
 
-# Меняем владельца с root на технического пользователя
-RUN chown -R kanban:kanban /app
-# Переключаемся в технического пользователя
-USER kanban
+# Устанавливаем зависимости
+RUN pip install -r /kanban-main/requirements.txt
 
-# Устанавливаем дефолтную точку входа
-# ENTRYPOINT "bash"
-# ENTRYPOINT [ "bash"]
-# CMD "bash"
-CMD [ "bash" ]
+# Копируем весь код в контейнер
+COPY . /kanban-main
+
+# Устанавливаем рабочую директорию
+WORKDIR /kanban-main
+
+
+CMD [ "uvicorn src.main:app --reload" ]
+
