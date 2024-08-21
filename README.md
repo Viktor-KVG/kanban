@@ -22,8 +22,8 @@
 # Сборка и запуск проекта
 
 ```bash
-docker compose build app
-docker compose up -d app
+docker compose build 
+docker compose up -d 
 ```
 
 ## Накатывание миграций
@@ -31,7 +31,7 @@ docker compose up -d app
 Если контейнер с БД развёрнут в первый раз (или после удаления), то необходимо накатить миграции на БД:
 
 ```bash
-docker exec kanban_app alembic upgrade head
+docker exec kanban-main_src_1 alembic upgrade head
 ```
 
 # swagger
@@ -43,5 +43,5 @@ http://127.0.0.1:9000/docs
 Для отображения потоков вывода и потока ошибок внутри контейнера выполнить:
 
 ```bash
-docker logs -f kanban_app
+docker logs -f kanban-main_src_1
 ```
