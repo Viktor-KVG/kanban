@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import Any, Optional, ClassVar, Union
+from typing import Any, List, Optional, ClassVar, Union
 
 from fastapi import Query
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, conint
 
 class BoardsModel(BaseModel):
     pass
@@ -33,16 +33,17 @@ class UserList(BaseModel):
 
     class Config:
 
-        from_attributes = True      
+        from_attributes = True   
+ 
 
 class UserLoginForAdmin(BaseModel):
     login: str
 
 
 class SearchUsersList(BaseModel):
-    id: int
-    login: str
-    email: str 
+    id: Optional[int] = None
+    login: Optional[str] = None
+    email: Optional[str] = None
     
     class Config:
         from_attributes = True          
@@ -84,4 +85,4 @@ class Token(BaseModel):
     token: str
 
 class UserId(BaseModel):
-    id: int
+    id: int 

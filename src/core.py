@@ -4,6 +4,7 @@
 
 from hashlib import md5
 
+from fastapi import HTTPException, status
 from sqlalchemy import select
 
 from src.models import UserModel
@@ -46,23 +47,23 @@ def search_list_users(data1: SearchUsersList):
         query = session.query(UserModel)
 
         # Добавим условия к запросу, если они указаны
-        if data1.id:
+        if data1.id is not None:
             query = query.filter(UserModel.id == data1.id)
         if data1.login:
             query = query.filter(UserModel.login == data1.login)
         if data1.email:
             query = query.filter(UserModel.email == data1.email)
-
+            
         # Получаем отфильтрованные результаты
         filtered_users = query.all()  # Теперь это будет только те пользователи, которые соответствуют условиям
 
         if filtered_users:
-            return [UserList.from_orm(user) for user in filtered_users]  # Возвращает только соответствующих пользователей
 
-        return False                   
+            return [UserList.from_orm(user) for user in filtered_users] 
+        return False  
 
-
-def search_user_by_id(data: UserId):
+              
+def search_user_by_id(data: UserId): 
     with session_factory() as session:
         query = session.query(UserModel)
 
@@ -72,11 +73,8 @@ def search_user_by_id(data: UserId):
         result_id = query.first()
 
         if result_id:
-            print(result_id)
-            return UserList.from_orm(result_id) 
-
-        return False    
-
+            return UserList.from_orm(result_id)        
+        return False
 
    
 
