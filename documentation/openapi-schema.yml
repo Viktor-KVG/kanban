@@ -67,7 +67,7 @@ paths:
         '404':
           description: User not found
           
-  /user/{login}:
+  /user/login/{login}:
     get:
       tags:
         - user
