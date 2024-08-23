@@ -4,13 +4,13 @@
 """
 
 import hashlib
-from typing import Any
+from typing import Any, List, Optional
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import UJSONResponse
 import jwt
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends,  status, HTTPException
+from fastapi import APIRouter, Depends, Query,  status, HTTPException
 
 # from src.auth.auth_jwt import user_login
 from src.database import session_factory, get_db
@@ -48,31 +48,55 @@ def index():
 
 @api_router.post("/user", response_model=UserCreateResponse)   
 def create_user(data: UserCreate, db: Session = Depends(get_db)):
-    # Вызов бизнес-логики по определению существования пользователя (функция is_user_exist)
     if core.is_user_exist(data):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Error in data entry, such user already exists'
         )
-    # Вызов бизнес-логики по регистрации пользователя (функция register_user)
+
     else:
         user = core.register_user(data)
         return user
 
 
-@api_router.get('/user/{user_id}')
-def search_user_id( id: int = None):
-    search_id = core.search_user_by_id(UserId(id=id))
-    if search_id:
-        return {'search_id':search_id}
+@api_router.get("/user/list")
+def search_users_list( user_id: int = None, user_login: str = None, user_email: str = None):  
+    result_list = core.search_list_users(SearchUsersList(id=user_id, login=user_login, email=user_email))
+    if result_list:
+        return  result_list
     
-    elif search_id == False:
+    elif result_list == False:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail='Input Error'
+        ) 
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='User not found'
+        )
+
+
+@api_router.get('/user/{user_id}')
+def search_user_id( user_id: int ):
+    if user_id <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_417_EXPECTATION_FAILED,
+            detail='User ID must not be zero'
+        )    
+
+    search_id = core.search_user_by_id(UserId(id=user_id))
+
+    if search_id:
+        return search_id
+    
+    if search_id == False:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Invalid user '
-        )
+        )   
+  
 
-# @TODO переделать по аналогии с предыдущим EP
 @api_router.post("/user/login_jwt", response_model=Token)
 def user_login_jwt(data: UserLogin):
     func = auth_jwt.user_login(data)
@@ -93,38 +117,9 @@ def user_login_jwt(data: UserLogin):
         )
 
 
-    # >>> начало бизнес-логики
-
-        # @TODO проверить ещё и пароль
-
-    # @TODO сгенерировать jwt токен (PyJWT, секретный ключ придумать и положить в settings.py)
-    # <<< конец бизнес-логики
-
-        # @TODO вернуть jwt токен
-
-
-@api_router.post("/user/list")
-def search_users_list(data1:SearchUsersList, id: int = None, login: str = None, email: str = None):
-    result_list = core.search_list_users(data1)
-    if result_list:
-        return  result_list
-    
-    elif result_list == False:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail='Input Error'
-        ) 
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='User not found'
-        )
-
-
-
-@api_router.post('/user/{login}', response_model=UserForAdmin)
-def user_login_for_admin(data: UserLoginForAdmin):
-    search_login = core.search_user_for_admin(data)
+@api_router.get('/user/login/{login}')
+def user_login_for_admin(login:str):
+    search_login = core.search_user_for_admin(UserLoginForAdmin(login=login))
     if search_login:
         return search_login
     
