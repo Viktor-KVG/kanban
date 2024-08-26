@@ -24,7 +24,8 @@ from src.schemas import (
     UserForAdmin,
     UserLoginForAdmin,
     SearchUsersList,
-    UserList
+    UserList,
+    UserUpdate
 )
 from src import core
 from src.auth import auth_jwt
@@ -95,7 +96,26 @@ def search_user_id( user_id: int ):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Invalid user '
         )   
-  
+
+
+@api_router.put('/user/{user_id}', response_model=UserForAdmin)
+def search_user_id(user_id: int, user_update: UserUpdate):
+    if user_id <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_417_EXPECTATION_FAILED,
+            detail='User ID must not be zero'
+        )    
+
+    user_put = core.search_user_by_id_put(user_update, user_id)
+
+    if user_put:
+        return user_put
+    
+    if user_put == False:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Invalid user '
+        ) 
 
 @api_router.post("/user/login_jwt", response_model=Token)
 def user_login_jwt(data: UserLogin):
