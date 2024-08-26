@@ -2,13 +2,15 @@
 # Например, процедура логина пользователя или его регистрация
 # Эти функции из app.core импортируются в обработчики запросов (роуты) и вызываются
 
+from datetime import datetime
 from hashlib import md5
+import logging
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
 
 from src.models import UserModel
-from src.schemas import UserCreate, UserId, UserLogin, UserCreateResponse, UserLoginForAdmin, SearchUsersList, UserList
+from src.schemas import UserCreate, UserId, UserLogin, UserCreateResponse, UserLoginForAdmin, SearchUsersList, UserList, UserUpdate
 from src.database import session_factory
 
 
@@ -71,12 +73,27 @@ def search_user_by_id(data: UserId):
             query = query.filter(UserModel.id == data.id)
 
         result_id = query.first()
+        logging.info(f"Retrieved user: {result_id}")
 
         if result_id:
             return UserList.from_orm(result_id)        
         return False
 
    
+def search_user_by_id_put(data:UserUpdate, user_id:int):
+    with session_factory() as session:
+        query = session.query(UserModel).filter(UserModel.id == user_id).first()
+
+        if query:
+            query.login = data.login
+            query.password = data.password
+            query.email = data.email
+            query.updated_at = datetime.now()
+            session.commit()
+            session.refresh(query)
+            return query
+        return False
+
 
         
 

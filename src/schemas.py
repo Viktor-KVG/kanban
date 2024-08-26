@@ -14,7 +14,7 @@ class UserForAdmin(BaseModel):
     login: str
     email: str
     created_at: datetime
-    created_up: Union[datetime, None] = Query(default=None)
+    updated_at: datetime
     is_admin: bool
     boads: Union[list[BoardsModel], None] = Query(default=None)
 
@@ -27,7 +27,7 @@ class UserList(BaseModel):
     login: str
     email: str
     created_at: datetime
-    created_up: Union[datetime, None] = None
+    updated_at: datetime
     is_admin: bool
     boads: Union[list[BoardsModel], None] = None
 
@@ -86,3 +86,14 @@ class Token(BaseModel):
 
 class UserId(BaseModel):
     id: int 
+
+
+class UserUpdate(BaseModel):
+    login: str
+    password: str
+    email: str
+
+ 
+    class Config:
+        from_attributes = True 
+  
