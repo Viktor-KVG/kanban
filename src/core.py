@@ -95,6 +95,15 @@ def search_user_by_id_put(data:UserUpdate, user_id:int):
         return False
 
 
+def search_user_by_id_for_delete(data: UserId):
+    with session_factory() as session:
+        user_delete = session.query(UserModel).filter(UserModel.id == data.id).first()
+
+        if user_delete:
+            session.delete(user_delete)
+            session.commit()
+            return{'details': 'User deleted'}
+        return False
         
 
 
