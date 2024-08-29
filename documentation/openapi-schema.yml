@@ -153,7 +153,7 @@ paths:
           description: that shows the user's profile
           required: true
           schema:
-            type: string      
+            type: integer     
       
       responses:
         '200':
@@ -211,7 +211,7 @@ paths:
         '400':
           description: Invalid user value
           
-  /user/login:
+  /user/login_jwt:
     get:
       tags:
         - user
