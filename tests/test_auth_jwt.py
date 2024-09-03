@@ -1,19 +1,31 @@
-# from src.auth import login_item, user_login
-from conftest import client
+
+import hashlib
+from models import UserModel
 from src.auth.auth_jwt import user_login
 import json
+from fastapi.testclient import TestClient
+from src.main import app
+
+client = TestClient(app)
 
 
 
-
-
-def test_auth_jwt(user_jwt):
+def test_auth_jwt(connect_to_database):
     fake_user = {
-                "login": "strin",
-                "password": "strin"
+                "login": "string",
+                "password": "string"
                 }
-    response = client.post("/user/login", data=json.dumps(fake_user))
+    hashed_password = hashlib.md5(fake_user["password"].encode('utf-8')).hexdigest()
+    user = UserModel(login=fake_user["login"], password_hash=hashed_password, email='string')
+    connect_to_database.add(user)
+    connect_to_database.commit()
+
+    response = client.post("/api/user/login_jwt", json={'login': fake_user['login'], 'password': fake_user['password']})
     resp_json = response.json()
 
-    assert user_jwt["login"] == fake_user['login']
-    assert user_jwt["password"] == fake_user['password']
+    assert response.status_code == 200, f"Expected 200, got {response.status_code}. Response: {resp_json}"
+    assert 'token' in resp_json, f"Token not found in response: {resp_json}"
+
+
+
+    
