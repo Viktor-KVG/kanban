@@ -26,12 +26,19 @@ docker compose build
 docker compose up -d 
 ```
 
-## Накатывание миграций
+# Накатывание миграций
 
 Если контейнер с БД развёрнут в первый раз (или после удаления), то необходимо накатить миграции на БД:
 
 ```bash
 docker exec kanban-main_src_1 alembic upgrade head
+```
+
+# Накатывание миграций в тестовой базе данных
+
+```bash
+alembic -c alembic_test.ini revision --autogenerate
+alembic -c alembic_test.ini upgrade head
 ```
 
 # swagger
