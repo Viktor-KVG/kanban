@@ -2,17 +2,20 @@ import datetime
 import hashlib
 import logging
 import os
+from database import get_db
 from models import UserModel, BoardModel
 from src.auth.auth_jwt import user_login
 import json
 from fastapi.testclient import TestClient
 from src.main import app
 from tests import conftest
-from tests.conftest import clear_database, connect_to_database
+from tests.conftest import clear_database, connect_to_database, override_get_db, TEST_SQL_DATABASE_URL, test_client
 
 client = TestClient(app)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+
 
 def clearing_database(connect_to_database):
     # Очистка таблицы пользователей
@@ -21,12 +24,14 @@ def clearing_database(connect_to_database):
     connect_to_database.commit()
     logger.info("База данных очищена.")
 
-def test_create_user(connect_to_database):
+def test_create_user(connect_to_database, test_client):
 
 
     logger.info("Запуск теста создания пользователя...")
     # Очистка БД перед тестом
-    clear_database()
+    print("Используемая база данных:", TEST_SQL_DATABASE_URL)
+    clear_database(connect_to_database)
+    print("Используемая база данных:", TEST_SQL_DATABASE_URL)
 
     # Проверка количества пользователей до создания нового
     user_count_before = connect_to_database.query(UserModel).count()
@@ -39,12 +44,14 @@ def test_create_user(connect_to_database):
     }
 
     # Печать тестовой базы данных
+    logging.basicConfig()
     logger.info(f"Test DB_______: {connect_to_database}")
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-    print("Using DATABASE_URL:", os.getenv("TEST_DATABASE_URL"))
+    print("Using DATABASE_URL:", os.getenv("TEST_SQL_DATABASE_URL"))
+
 
     # Создание тестового пользователя через API
-    response = client.post("/api/user", json=test_user_data)
+    response = test_client.post("/api/user", json=test_user_data)
 
     resp_json = response.json()
     if response.status_code != 200:
@@ -73,16 +80,16 @@ def test_create_user(connect_to_database):
     
     logger.info(f'Найденный пользователь: {added_user}')
 
-def test_search_users_list(connect_to_database):
+def test_search_users_list(connect_to_database, test_client):
 
-    response = client.get("/api/user/list", params={"login": 'string'})
+    response = test_client.get("/api/user/list", params={"login": 'string'})
     resp_json = response.json()
     
     assert response.status_code == 200, f"Expected 200, got {response.status_code}. Response: {resp_json}"
     assert response.status_code != 404, f"Expected 404, got {response.status_code}. Response: {resp_json}"    
 
 
-def test_search_user_id(connect_to_database):
+def test_search_user_id(connect_to_database, test_client):
     connect_to_database.query(BoardModel).delete()
     connect_to_database.query(UserModel).delete()
     
@@ -98,18 +105,18 @@ def test_search_user_id(connect_to_database):
     user = UserModel( login=fake_user['login'], password_hash='', email=fake_user["email"])
     connect_to_database.add(user)
     connect_to_database.commit()
-    response = client.get(f'/api/user/{1}')
+    response = test_client.get(f'/api/user/{1}')
     resp_json = response.json()
     assert response.status_code == 200, f"Expected 200, got {response.status_code}. Response: {resp_json}"
 
-    response_second = client.get(f'/api/user/{500}')
+    response_second = test_client.get(f'/api/user/{500}')
     resp_json_second = response_second.json()
     assert response_second.status_code == 400, f"Expected 400, got {response_second.status_code}. Response: {resp_json_second}"
 
 from sqlalchemy import text
 
 def test_clear_database(connect_to_database):
-    session = connect_to_database  # Получаем сессию для работы с базой данных
+    session = connect_to_database # Получаем сессию для работы с базой данных
 
     # Создаем тестовые данные
     session.execute(text("INSERT INTO \"user\" (login, password_hash, email, created_at, updated_at, is_admin) VALUES ('test_user', 'hashed_password', 'test@example.com', NOW(), NOW(), FALSE)"))
@@ -120,7 +127,7 @@ def test_clear_database(connect_to_database):
     assert len(results) > 0, "Таблица не должна быть пустой"
 
     # Очищаем базу данных
-    clear_database()
+    clear_database(session)
 
     session.invalidate()  # Сбрасываем кэш сессии после очистки
 
@@ -130,10 +137,10 @@ def test_clear_database(connect_to_database):
 
 
 
-def test_search_users_list_by_id(connect_to_database):
+def test_search_users_list_by_id(connect_to_database, test_client):
     user_id = 38 
 
-    response = client.get("/api/user/list", params={"id": user_id})
+    response = test_client.get("/api/user/list", params={"id": user_id})
     assert response.status_code == 200
     users = response.json()
     assert isinstance(users, list)
@@ -141,10 +148,10 @@ def test_search_users_list_by_id(connect_to_database):
     assert users[0]['id'] == user_id  # Проверяем, что ID совпадает
 
 
-def test_search_users_list_by_email(connect_to_database):
+def test_search_users_list_by_email(connect_to_database, test_client):
     user_email = "test_1727370732.563326@example.com"  # Измените на email вашего тестового пользователя
 
-    response = client.get("/api/user/list", params={"email": user_email})
+    response = test_client.get("/api/user/list", params={"email": user_email})
     assert response.status_code == 200
     users = response.json()
     assert isinstance(users, list)
