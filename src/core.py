@@ -5,12 +5,12 @@
 from datetime import datetime
 from hashlib import md5
 import logging
-
+from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from sqlalchemy import select
 
-from src.models import BoardModel, UserModel
-from src.schemas import (UserCreate, 
+from src.models import BoardModel, ColumnModel, UserModel
+from src.schemas import (BoardListModel, ColumnsModel, CreateColumn, UserCreate, 
                         UserId, 
                         UserLogin, 
                         UserCreateResponse, 
@@ -23,7 +23,11 @@ from src.schemas import (UserCreate,
                         PutBoard,
                         BoardId)
 from src.database import session_factory
+import logging
+
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 '''User'''
 
@@ -53,6 +57,7 @@ def register_user(data: UserCreate) -> UserModel:
             session.rollback()
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))    
 
+
 def search_user_for_admin(data: UserLoginForAdmin):
     with session_factory() as session:
         search_login = session.query(UserModel).filter_by(login= data.login).first()
@@ -61,27 +66,35 @@ def search_user_for_admin(data: UserLoginForAdmin):
         return False
 
 
-def search_list_users(data1: SearchUsersList):
-    with session_factory() as session:
-        query = session.query(UserModel)
+def search_list_users(data1: SearchUsersList, db: Session):
+    query = db.query(UserModel)
 
         # Добавим условия к запросу, если они указаны
-        if data1.id is not None:
-            query = query.filter(UserModel.id == data1.id)
-        if data1.login:
-            query = query.filter(UserModel.login == data1.login)
-        if data1.email:
-            query = query.filter(UserModel.email == data1.email)
-            
-        # Получаем отфильтрованные результаты
-        filtered_users = query.all()  # Теперь это будет только те пользователи, которые соответствуют условиям
+    if data1.id is not None:
+        query = query.filter(UserModel.id == data1.id)
+    if data1.login:
+        query = query.filter(UserModel.login == data1.login)
+    if data1.email:
+        query = query.filter(UserModel.email == data1.email)
 
-        if filtered_users:
+    filtered_users = query.all()            
+    result_list = []
 
-            return [UserList.from_orm(user) for user in filtered_users]
-        return []
+    for user in filtered_users:
+        # Получение всех досок, связанных с этим пользователем
+        boards = db.query(BoardModel).filter(BoardModel.author_id == user.id).all()
+        
+        # Преобразование в список Pydantic моделей BoardsModel
+        user_boards = [BoardsModel.from_orm(board) for board in boards]
+        
+        # Создаем объект Pydantic для пользователя и добавляем списки досок
+        user_list_item = UserList.from_orm(user)
+        user_list_item.boards = user_boards  # Присваиваем выделенные доски
 
+        # Добавляем пользователя с его досками в результат
+        result_list.append(user_list_item)
 
+    return result_list # Возвращаем список пользователей (возможно, только один)
               
 def search_user_by_id(data: UserId): 
     with session_factory() as session:
@@ -137,7 +150,7 @@ def is_board_exist(data: BoardsModel) -> bool:
         
 def create_board(data: CreateBoardModel):
     with session_factory() as session:
-        board = BoardModel(title=data.title, author_id=data.author_id, board_column=data.board_column)
+        board = BoardModel(title=data.title, author_id=data.author_id)
 
         if board:
             session.add(board)
@@ -147,12 +160,13 @@ def create_board(data: CreateBoardModel):
 
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)  
 
+    return BoardsModel.from_orm(board)  # Используем Pydantic модель для возврата
 
 
-def boards_list(data: PutBoard):
+def boards_list(data: BoardListModel):
     with session_factory() as session:
         query = session.query(BoardModel)
-        if data.title is not None:
+        if data.title:
             query = query.filter(BoardModel.title == data.title)
 
         list_boards = query.all()
@@ -166,7 +180,7 @@ def board_id_number(data: BoardId):
     with session_factory() as session:
         board = session.query(BoardModel).where(BoardModel.id == data.id).first()
         if board:
-            return
+            return board
         return False
     
 
@@ -193,6 +207,31 @@ def search_board_for_delete(data: BoardId):
             return{'details': 'Board deleted'}
         return False
 
+'''Column'''
+
+def if_column_exist(data: CreateColumn, db: Session):
+    # Проверяем, существует ли доска с данным ID
+    board = db.query(BoardModel).filter(BoardModel.id == data.boards).first()
+    if not board:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Board not found'
+        )
+
+    # Проверяем, существует ли колонка с указанным заголовком в данной доске
+    same_column = db.query(ColumnModel).filter(ColumnModel.title == data.title, ColumnModel.board_id == data.boards).first()  
+
+    return same_column is not None
 
 
+def create_column(data: CreateColumn, db: Session):
+    if if_column_exist(data, db):
+        return False  # Если колонка существует, вернуть None
 
+    # Если колонка не существует, создаем новую
+    new_column = ColumnModel(title=data.title, board_id=data.boards) # Указываем, к какой доске относится новая колонка
+    db.add(new_column)
+    db.commit()
+    db.refresh(new_column)
+
+    return ColumnsModel.from_orm(new_column)
