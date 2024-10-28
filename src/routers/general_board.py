@@ -1,22 +1,26 @@
+from typing import List
 from fastapi import APIRouter
 from src import core
 from src.auth import auth_jwt
-from src.schemas import (Token, 
+from src.schemas import (SearchUsersList, Token, 
                          BoardsModel, 
                          CreateBoardModel,
                          BoardId, 
                          PutBoard, 
-                         DeleteBoard)
+                         BoardListModel)
 from fastapi import APIRouter, Depends, Query,  status, HTTPException
+import logging
 
+logger = logging.getLogger(__name__)
 
-api_router = APIRouter(
+api_router_board = APIRouter(
     prefix="/api",
-    tags=["api"]
+    tags=["api_board"]
 )
 
-@api_router.post("/board", response_model=BoardsModel)   
+@api_router_board.post("/board", response_model=BoardsModel) 
 def create_board_model(data: CreateBoardModel):
+    logger.info("Creating board with data: %s", data)
     if core.is_board_exist(data):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -28,9 +32,9 @@ def create_board_model(data: CreateBoardModel):
         return board
     
 
-@api_router.get('board/list')
-def boards_list(bard_title: str = None):
-    boadrs = core.boards_list(PutBoard(title=bard_title))
+@api_router_board.get('/board/list', response_model=List[BoardsModel])
+def boards_list(board_title: str = None):
+    boadrs = core.boards_list(BoardListModel(title=board_title))
     if boadrs:
         return boadrs
     
@@ -41,7 +45,7 @@ def boards_list(bard_title: str = None):
             )
 
 
-@api_router.get('board/{board_id}')
+@api_router_board.get('/board/{board_id}')
 def search_board_id(id_number: int):
     if id_number <= 0:
         raise HTTPException(
@@ -61,7 +65,7 @@ def search_board_id(id_number: int):
         )     
     
 
-@api_router.put('/board/{board_id}', response_model=BoardsModel)
+@api_router_board.put('/board/{board_id}', response_model=BoardsModel)
 def put_board_id(board_id: int, board_update: PutBoard):
     if board_id <= 0:
         raise HTTPException(
@@ -81,7 +85,7 @@ def put_board_id(board_id: int, board_update: PutBoard):
         )
     
 
-@api_router.delete('/board/{user_id}')
+@api_router_board.delete('/board/{user_id}')
 def delete_board_id(board_id: int):
     if board_id <= 0:
         raise HTTPException(

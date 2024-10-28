@@ -61,22 +61,17 @@ def create_user(data: UserCreate, db: Session = Depends(get_db)):
         return user
 
 
-@api_router.get("/user/list")
-def search_users_list( user_id: int = None, user_login: str = None, user_email: str = None):  
-    result_list = core.search_list_users(SearchUsersList(id=user_id, login=user_login, email=user_email))
+@api_router.get("/user/list", response_model=List[UserList])
+def search_users_list( user_id: int = None, user_login: str = None, user_email: str = None, db: Session = Depends(get_db)):  
+    result_list = core.search_list_users(SearchUsersList(id=user_id, login=user_login, email=user_email), db)
     if result_list:
         return  result_list
     
-    elif result_list == False:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail='Input Error'
-        ) 
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='User not found'
-        )
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail='User not found'
+    )
 
 
 @api_router.get('/user/{user_id}')
@@ -136,6 +131,7 @@ def delete_user_id(user_id: int):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Invalid user '
         )     
+
 
 @api_router.post("/user/login_jwt", response_model=Token)
 def user_login_jwt(data: UserLogin):
