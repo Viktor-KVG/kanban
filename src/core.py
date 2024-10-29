@@ -10,7 +10,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 
 from src.models import BoardModel, ColumnModel, UserModel
-from src.schemas import (BoardListModel, ColumnsModel, CreateColumn, UserCreate, 
+from src.schemas import (BoardListModel, ColumnList, ColumnsModel, CreateColumn, PutColumn, UserCreate, 
                         UserId, 
                         UserLogin, 
                         UserCreateResponse, 
@@ -235,3 +235,29 @@ def create_column(data: CreateColumn, db: Session):
     db.refresh(new_column)
 
     return ColumnsModel.from_orm(new_column)
+
+
+def columns_list(data: PutColumn, db: Session):
+
+    #проверяем, существует ли такая доска
+    board_exists = db.query(BoardModel).filter(BoardModel.id == data.id_board).first()
+    
+    if not board_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Board not found'
+        )
+
+    #находим соответсствующую данным колонку
+    column = db.query(ColumnModel).filter(ColumnModel.board_id == data.id_board, ColumnModel.title == data.title).first()
+
+    if column:
+        return column if column else []
+
+    list_columns = db.query(ColumnModel).all()
+    
+    return [ColumnsModel.from_orm(col) for col in list_columns]
+
+    
+    
+

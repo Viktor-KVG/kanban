@@ -6,135 +6,174 @@ from pydantic import BaseModel, ConfigDict, conint
 
 '''Boards'''
 class BoardsModel(BaseModel):
+    id: int
     title: str
-    created_at: datetime
-    updated_at: datetime
-    author_id: 'UserId'
-    board_column: Union[List['ColumnModel'], None] = None
+    author_id: int
     class Config:
 
         from_attributes = True
 
+class BoardListModel(BaseModel):
+    title: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+
 
 class CreateBoardModel(BaseModel):
     title: str
-    author_id: 'UserId'
-    board_column: Union[List['ColumnModel'], None] = None
+    author_id: int
+
+
+    class Config:
+        from_attributes = True
 
 
 class BoardId(BaseModel):
     id: int 
 
+    class Config:
+        from_attributes = True    
+
 
 class PutBoard(BaseModel):
     title: str
 
+    class Config:
+        from_attributes = True
     
 
 
 '''Column''' 
-class ColumnModel(BaseModel):
+class ColumnsModel(BaseModel):
+    id: int
     title: str
     created_at: datetime
     updated_at: datetime
-    board_id: 'BoardsModel.id'
-    board: 'BoardsModel'
-    tickets_list: List['TicketModel']
+    board_id: int    #'BoardsModel.id'
+    board: BoardsModel  # Загрузка родителя, если нужно
+    tickets_list: List['TicketsModel'] = []  # Список тикетов, по умолчанию пустой
+    class Config:
+        from_attributes = True
 
 
 class ColumnList(BaseModel):
-    board_column: List['ColumnModel']
+    board_column: List[ColumnsModel]   
+    class Config:
+        from_attributes = True
 
 
 class CreateColumn(BaseModel):
     title: str
-    created_at: datetime
-    updated_at: datetime
+    boards: int
+    class Config:
+        from_attributes = True
 
 
 class ColumnId(BaseModel):
     id: int 
+    class Config:
+        from_attributes = True
 
 
 class PutColumn(BaseModel):
-    title: str
-
+    id_board: int
+    title: Optional[str] = None
+    class Config:
+        from_attributes = True
 
 
 '''Ticket'''
-class TicketModel(BaseModel):
+class TicketsModel(BaseModel):
+    id: int
     title: str
     created_at: datetime
     updated_at: datetime
-    column_id: ColumnModel.id
+    column_id: int  #'ColumnModel.id'
     description: str
-    author_id: 'UserId'
+    author_id: int  #'UserId'
     deadline: str
     estimate: float
     priority: str
-    performer_id: 'UserId'
-    comments_list: List["CommentModel"] 
-
+    performer_id: int  #'UserId'
+    comments_list: List["CommentsModel"] 
+    class Config:
+        from_attributes = True
 
 class ListTickets(BaseModel):
-    tickets_list: List[TicketModel]
-
+    tickets_list: List[TicketsModel]
+    class Config:
+        from_attributes = True
 
 class CreateTicket(BaseModel):
+    id: int
     title: str
     created_at: datetime
     updated_at: datetime
-    column_id: ColumnModel.id
+    column_id: int    #'ColumnModel.id'
     description: str
-    author_id: 'UserId'
+    author_id: int   #'UserId'
     deadline: str
     estimate: float
     priority: str
-    performer_id: 'UserId'
-
+    performer_id: int   #'UserId'
+    class Config:
+        from_attributes = True
 
 class TicketId(BaseModel):
     id: int 
-
+    class Config:
+        from_attributes = True
 
 class PutTicket(BaseModel):
     title: str
-    column_id: ColumnModel.id
+    column_id: int   #ColumnModel.id
     description: str
-    author_id: 'UserId'
+    author_id: int   #'UserId'
     deadline: str
     estimate: float
     priority: str
-    performer_id: 'UserId'    
-
+    performer_id: int   #'UserId'    
+    class Config:
+        from_attributes = True
 
 '''Comment'''
-class CommentModel(BaseModel):
+class CommentsModel(BaseModel):
+    id: int
     created_at: datetime
     updated_at: datetime
-    ticket_id: 'TicketModel.id'
-    author_id: "UserId"
+    ticket_id: int   #'TicketModel.id'
+    author_id: int   #"UserId"
     content: str
+    class Config:
+        from_attributes = True
+
 
 class ListComment(BaseModel):
-    comments_list: List[CommentModel]
-
+    comments_list: List[CommentsModel]
+    class Config:
+        from_attributes = True
 
 class CreateComment(BaseModel):
 
-    ticket_id: 'TicketModel.id'
+    ticket_id: int   #'TicketModel.id'
     content: str  
-
+    class Config:
+        from_attributes = True
 
 class CommentId(BaseModel):
     id: int
-
+    class Config:
+        from_attributes = True
 
 
 class PutComment(BaseModel):
     id: int
     content: str
-
+    class Config:
+        from_attributes = True
   
 
 '''Users'''
@@ -159,7 +198,7 @@ class UserList(BaseModel):
     created_at: datetime
     updated_at: datetime
     is_admin: bool
-    boads: Union[list[BoardsModel], None] = None
+    boards: Optional[list[BoardsModel]] = None
 
     class Config:
 
