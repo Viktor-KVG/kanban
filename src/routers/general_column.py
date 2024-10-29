@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter
 from src import core
 from src.auth import auth_jwt
-from src.schemas import (ColumnsModel, CreateColumn, SearchUsersList, Token, 
+from src.schemas import (ColumnList, ColumnsModel, CreateColumn, PutColumn, SearchUsersList, Token, 
                          BoardsModel, 
                          CreateBoardModel,
                          BoardId, 
@@ -37,6 +37,16 @@ def create_column_model(data: CreateColumn, db: Session = Depends(get_db)):
                 detail='Failed to create column'
                 )
         return column
-    # else:
-    #     column = core.create_column(data, db)
-    #     return column
+
+
+@api_router_column.get('/board/board_id/column/list')
+def show_column_list(id_board:int, title_column:str = None,  db: Session = Depends(get_db)):
+    list_col = core.columns_list(PutColumn(id_board=id_board, title=title_column), db)
+    if list_col:
+        return list_col
+    
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail='The request failed'
+                )
+
