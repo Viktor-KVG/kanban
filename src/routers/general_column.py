@@ -2,7 +2,13 @@ from typing import List
 from fastapi import APIRouter
 from src import core
 from src.auth import auth_jwt
-from src.schemas import (ColumnList, ColumnsModel, CreateColumn, PutColumn, SearchUsersList, Token, 
+from src.schemas import (ColumnId, 
+                         ColumnList, 
+                         ColumnPut, 
+                         ColumnsModel, 
+                         CreateColumn, 
+                         SearchUsersList, 
+                         Token, 
                          BoardsModel, 
                          CreateBoardModel,
                          BoardId, 
@@ -40,8 +46,8 @@ def create_column_model(data: CreateColumn, db: Session = Depends(get_db)):
 
 
 @api_router_column.get('/board/board_id/column/list')
-def show_column_list(id_board:int, title_column:str = None,  db: Session = Depends(get_db)):
-    list_col = core.columns_list(PutColumn(id_board=id_board, title=title_column), db)
+def show_column_list(id_board: int, title_column: str = None,  db: Session = Depends(get_db)):
+    list_col = core.columns_list(ColumnList(id_board=id_board, title=title_column), db)
     if list_col:
         return list_col
     
@@ -50,3 +56,42 @@ def show_column_list(id_board:int, title_column:str = None,  db: Session = Depen
         detail='The request failed'
                 )
 
+
+@api_router_column.get('/board/{board_id}/column/{column_id}/', response_model= ColumnsModel)
+def show_column_by_id(id_board: int, id_column: int, db: Session = Depends(get_db)):
+    one_column = core.search_column_by_id(ColumnId(id_board=id_board, id_column=id_column), db)
+    if one_column:
+        return one_column
+    
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail='The request failed'
+                )
+    
+@api_router_column.put('/board/{board_id}/column/{column_id}/', response_model= ColumnsModel)
+def change_column(board_id:int, column_id: int, column: ColumnPut, db: Session = Depends(get_db)):
+    print(f'Called change_column with board_id={board_id}, column_id={column_id}')
+    column_update = core.search_column_for_put(column, board_id, column_id, db)
+
+    if column_update:
+        return column_update
+    
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail='The request failed'
+                )
+    
+@api_router_column.delete('/board/{board_id}/column/{column_id}/')
+def delete_column(board_id:int, column_id: int, db: Session = Depends(get_db)):
+    column_delete = core.search_column_for_delete(board_id, column_id, db)
+    if column_delete:
+        return column_delete
+    
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail='The request failed'
+                )
+    
+
+
+    
