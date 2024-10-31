@@ -59,10 +59,10 @@ class ColumnsModel(BaseModel):
         from_attributes = True
 
 
-class ColumnList(BaseModel):
-    board_column: List[ColumnsModel]   
-    class Config:
-        from_attributes = True
+# class ColumnList(BaseModel):
+#     board_column: List[ColumnsModel]   
+#     class Config:
+#         from_attributes = True
 
 
 class CreateColumn(BaseModel):
@@ -73,16 +73,23 @@ class CreateColumn(BaseModel):
 
 
 class ColumnId(BaseModel):
-    id: int 
+    id_board: int
+    id_column: int 
     class Config:
         from_attributes = True
 
 
-class PutColumn(BaseModel):
+class ColumnList(BaseModel):
     id_board: int
     title: Optional[str] = None
     class Config:
         from_attributes = True
+
+
+class ColumnPut(BaseModel):
+    title: str
+    class Config:
+        from_attributes = True        
 
 
 '''Ticket'''

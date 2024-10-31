@@ -10,18 +10,24 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 
 from src.models import BoardModel, ColumnModel, UserModel
-from src.schemas import (BoardListModel, ColumnList, ColumnsModel, CreateColumn, PutColumn, UserCreate, 
-                        UserId, 
-                        UserLogin, 
-                        UserCreateResponse, 
-                        UserLoginForAdmin, 
-                        SearchUsersList, 
-                        UserList, 
-                        UserUpdate,
-                        BoardsModel,
-                        CreateBoardModel, 
-                        PutBoard,
-                        BoardId)
+from src.schemas import (BoardListModel, 
+                         ColumnId, 
+                         ColumnList, 
+                         ColumnPut, 
+                         ColumnsModel, 
+                         CreateColumn, 
+                         UserCreate, 
+                         UserId, 
+                         UserLogin, 
+                         UserCreateResponse, 
+                         UserLoginForAdmin, 
+                         SearchUsersList, 
+                         UserList, 
+                         UserUpdate,
+                         BoardsModel,
+                         CreateBoardModel, 
+                         PutBoard,
+                         BoardId)
 from src.database import session_factory
 import logging
 
@@ -237,8 +243,7 @@ def create_column(data: CreateColumn, db: Session):
     return ColumnsModel.from_orm(new_column)
 
 
-def columns_list(data: PutColumn, db: Session):
-
+def columns_list(data: ColumnList, db: Session):
     #проверяем, существует ли такая доска
     board_exists = db.query(BoardModel).filter(BoardModel.id == data.id_board).first()
     
@@ -259,5 +264,48 @@ def columns_list(data: PutColumn, db: Session):
     return [ColumnsModel.from_orm(col) for col in list_columns]
 
     
-    
+def search_column_by_id(data: ColumnId, db:Session):
+    board_exists = db.query(BoardModel).filter(BoardModel.id == data.id_board).first()
+    if not board_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Board not found'
+        )
 
+    column_exist = db.query(ColumnModel).filter(ColumnModel.board_id == data.id_board, ColumnModel.id == data.id_column).first()
+    return column_exist
+
+
+def search_column_for_put(data: ColumnPut, board_id: int, column_id: int, db: Session):
+    print(f"Checking for board with ID: {board_id}")  # Отладочная печать
+    board_exists = db.query(BoardModel).filter(BoardModel.id == board_id).first()
+    if not board_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Board not found'
+        )
+    
+    column_change = db.query(ColumnModel).filter(ColumnModel.id == column_id, ColumnModel.board_id == board_id).first()
+    if column_change:
+        column_change.title = data.title
+        column_change.updated_at = datetime.now()
+        db.commit()
+        db.refresh(column_change)
+        return column_change
+    return False
+
+
+def search_column_for_delete( board_id: int, column_id: int,db: Session):
+    board_exists = db.query(BoardModel).filter(BoardModel.id == board_id).first()
+    if not board_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Board not found'
+        )
+    
+    column_exist = db.query(ColumnModel).filter(ColumnModel.board_id == board_id, ColumnModel.id == column_id).first()
+    if column_exist:
+        db.delete(column_exist)
+        db.commit()
+        return {'details': 'Column deleted successfully'}
+    return False
