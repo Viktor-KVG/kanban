@@ -9,13 +9,14 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from sqlalchemy import select
 
-from src.models import BoardModel, ColumnModel, UserModel
+from src.models import BoardModel, ColumnModel, TicketModel, UserModel
 from src.schemas import (BoardListModel, 
                          ColumnId, 
                          ColumnList, 
                          ColumnPut, 
                          ColumnsModel, 
                          CreateColumn, 
+                         CreateTicket, 
                          UserCreate, 
                          UserId, 
                          UserLogin, 
@@ -309,3 +310,28 @@ def search_column_for_delete( board_id: int, column_id: int,db: Session):
         db.commit()
         return {'details': 'Column deleted successfully'}
     return False
+
+
+'''Ticket'''
+
+def if_exist_ticket(data: CreateTicket, board_id: int, column_id: int, db: Session):
+    board = db.query(BoardModel).filter(BoardModel.id == board_id)
+    if not board:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Board not found'
+        )
+    
+    column = db.query(ColumnModel).filter(ColumnModel.id == column_id)
+    if not column:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Column not found'
+        )
+    
+    ticket = db.query(TicketModel).filter(TicketModel.title == data.title)
+    return ticket is not None
+
+
+def create_ticket(data:CreateTicket, db: Session):
+    pass
