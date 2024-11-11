@@ -16,7 +16,7 @@ from src.schemas import (BoardListModel,
                          ColumnPut, 
                          ColumnsModel, 
                          CreateColumn, 
-                         CreateTicket, 
+                         CreateTicket, TicketsModel, 
                          UserCreate, 
                          UserId, 
                          UserLogin, 
@@ -334,4 +334,13 @@ def if_exist_ticket(data: CreateTicket, board_id: int, column_id: int, db: Sessi
 
 
 def create_ticket(data:CreateTicket, db: Session):
-    pass
+    if if_exist_ticket(data, db):
+        return False
+
+    new_ticket = TicketModel(title=data.title, column_id=data.column_id, description=data.description, author_id=data.author_id,
+                             deadline=data.deadline, estimate=data.estimate, priority=data.priority, performer_id=data.performer_id )
+
+    db.add(new_ticket)
+    db.commit()
+    db.refresh(new_ticket)
+    return TicketsModel.from_orm(new_ticket)
