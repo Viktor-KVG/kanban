@@ -1,0 +1,964 @@
+openapi: 3.0.3
+info:
+  title: kanban-board
+  description: Board for creating tasks for projects 
+  version: 1.0 T
+servers:
+  - url: https://localhost:8000/api/v1
+tags:
+  - name: user
+    description: user account
+      
+  - name: board
+    description: board
+    
+  - name: column
+    description: task stack
+    
+  - name: ticket
+    description: task information
+    
+  - name: comment
+    description: comment on the task
+paths:
+
+
+
+  /user: 
+    get:
+      tags:
+        - user
+      summary: Your profile
+      description: 'your profile'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'          
+        '400':
+          description: Invalid user    
+  
+    post:
+      tags:
+        - user
+      summary: Create user
+      description: Only a registered user can do this.
+      operationId: createUser
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Created user object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'          
+
+        '400':
+          description: User creation failed
+        '404':
+          description: User not found
+          
+  /user/login/{login}:
+    get:
+      tags:
+        - user
+      summary: Find user by login for admin
+      description: Returns a single user
+      security:
+        - bearerAuth: []  
+      parameters:
+        - name: login
+          in: path
+          description: login of user to return
+          required: true
+          schema:
+            type: string
+            
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'          
+
+        '400':
+          description: Invalid login supplied
+        '404':
+          description: User not found
+
+  /user/list:
+    get:
+      tags:
+        - user
+      summary: search for users by parameters
+      description: Returns user
+      security:
+        - bearerAuth: []  
+      parameters:
+        - name: user_id
+          in: query
+          description: id of user to return
+          required: false
+          schema:
+            type: integer
+        - name: login
+          in: query
+          description: login of user to return
+          required: false
+          schema:
+            type: string            
+        - name: email
+          in: query
+          description: email of user to return
+          required: false
+          schema:
+            type: string            
+            
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'          
+
+        '400':
+          description: Input Error
+        '404':
+          description: User not found
+
+          
+  /user/{user_id}:
+  
+    get:
+      tags:
+        - user
+      summary: Get user
+      description: 'displays information about the user in his profile'
+      parameters:
+        - name: user_id
+          in: path
+          description: that shows the user's profile
+          required: true
+          schema:
+            type: integer     
+      
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'          
+        '400':
+          description: Invalid user  
+    put:
+      tags:
+        - user
+      summary: Update user
+      description: Only a registered user can do this.
+      operationId: updateUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          description: id that need to be updated
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Update an existent user in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: successful operation
+
+ 
+    delete:
+      tags:
+        - user
+      summary: Deletes a user
+      description: delete a user
+      operationId: deleteUser
+      security:
+        - bearerAuth: []  
+      parameters:
+        - name: user_id
+          in: path
+          description: login to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: user deleted
+        '400':
+          description: Invalid user value
+          
+  /user/login_jwt:
+    get:
+      tags:
+        - user
+      summary: Logs user into the system
+      description: ''
+      operationId: loginUser
+      security:
+        - bearerAuth: []      
+      parameters:
+        - name: login
+          in: query
+          description: The user name for login
+          required: false
+          schema:
+            type: string
+        - name: password_hash
+          in: query
+          description: The password for login
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: Bearer Token for further authentication
+                    example: eyJ0eXAwcvvcb1QiLCJhbGciOsdfsUzI1NiJ9.eyJpZCI6IjEzMzciLCJ1c2VybmFtZSI6ImJpem9uZSIswwwfcI6MTU5NDIwOTYwMCwicm9sZSI6InVzZXIifQ.ZvkYYnyM92xvxcvNW9_hSis7_x3_9rymsDcvcbvuOcc1I
+        '401':
+          description: Authentication error, incorrect credentials
+        '500':
+          description: Internal Server Error
+  /user/logout:
+    get:
+      tags:
+        - user
+      summary: Logs out current logged in user session
+      description: ''
+      operationId: logoutUser
+      security:
+        - bearerAuth: []
+      parameters: []
+      responses:
+        default:
+          description: successful operation
+          
+  /board:
+    get:
+      tags:
+        - board
+      summary: your task boards
+      responses:
+        '200':
+          description: results on request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'          
+        '400':
+          description: The request failed
+          
+    post:
+      tags:
+        - board
+      summary: Сreating a new board
+      description: This can only be done by the logged in user
+      operationId: CreatingOrder
+      security:
+        - bearerAuth: []    
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Board'
+
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'
+        '400':
+          description: Invalid input
+        '409':
+          description: Such a board already exists                     
+          
+          
+
+  /board/list:
+    get:
+      tags:
+        - board
+      summary: search for boards by parameters
+      description: Returns board
+      security:
+        - bearerAuth: []  
+    
+     
+            
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Board'          
+
+        '400':
+          description: Input Error
+        '404':
+          description: User not found
+          
+
+  /board/{board_id}:
+    get:
+      tags:
+        - board
+      summary: view board by ID
+      operationId: viewBoards
+      security:
+        - bearerAuth: []    
+      description: This can only be done by the logged in user
+      parameters:
+        - name: board_id
+          in: path
+          description: ID boards
+          required: true
+          schema:
+            type: integer
+
+            
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'          
+
+        '400':
+          description: Invalid ID specified
+        '404':
+          description: Board not found 
+          
+    put:
+      tags:
+        - board
+      summary: Update board
+      description: This can only be done by the logged in user.
+      operationId: updateBoard
+      security:
+        - bearerAuth: []    
+      parameters:
+        - name: board_id
+          in: path
+          description: Changing board options
+          required: true
+          schema:
+            type: integer
+            example: 3
+      responses:
+        '200':
+          description: board parameters changed successfully
+        '400':
+          description: incorrect input
+        '404':
+          description: board not found
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Board'
+        description: Changed board parameters    
+        
+    delete:
+      tags:
+        - board
+      summary: Delete board
+      operationId: deleteBoard
+      security:
+        - bearerAuth: []  
+      description: Deleting a board by ID
+      parameters:
+        - name: board_id
+          in: path
+          description: Board ID to delete
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: board deleted successfully
+        '404':
+          description: Board not found
+        '500':
+          description: Internal Server Error           
+          
+
+  /board/board_id/column/list:
+    get:
+      tags:
+        - column
+      summary: displays a list of columns on the board
+      description: Returns columns
+      security:
+        - bearerAuth: []  
+
+      responses:
+        '200':
+          description: View all columns within a board
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Column'          
+        '400':
+          description: The request failed
+          
+  /board/board_id/column:
+    post:
+      tags:
+        - column
+      summary: Сreating a new column
+      description: This can only be done by the logged in user
+      operationId: CreatingColumn
+      security:
+        - bearerAuth: []    
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Column'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Column'
+
+        '409':
+          description: Such a column already exists           
+          
+  /board/board_id/column/{column_id}/:
+    get:
+      tags:
+        - column
+      summary: search column by ID
+      security:
+        - bearerAuth: []      
+      parameters:
+        - name: column_id
+          in: path
+          description: ID column
+          required: true
+          schema:
+            type: integer
+            example: 2
+      responses:
+        '200':
+          description: column found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Column'          
+        '400':
+          description: The request failed
+        
+    put:
+      tags:
+        - column
+      summary: Update column
+      description: This can only be done by the logged in user.
+      operationId: UpdateColumn
+      security:
+        - bearerAuth: []    
+      parameters:
+        - name: column_id
+          in: path
+          description: Changing column options
+          required: true
+          schema:
+            type: integer
+            example: 3
+      responses:
+        '200':
+          description: board parameters changed successfully
+        '400':
+          description: incorrect input
+        '404':
+          description: column not found
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Column'
+        description: Changed column parameters 
+        
+    delete:
+      tags:
+        - column
+      summary: Delete column
+      operationId: deleteColumn
+      security:
+          - bearerAuth: []  
+      description: Deleting a column by ID
+      parameters:
+        - name: column_id
+          in: path
+          description: Column ID to delete
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: column deleted successfully
+        '404':
+          description: Column not found
+        '500':
+          description: Internal Server Error            
+
+  /board/board_id/column/column_id/ticket/list:
+    get:
+      tags:
+        - ticket
+      summary: displays a list of tickets on the column
+      description: Returns ticket
+      security:
+        - bearerAuth: []  
+
+      responses:
+        '200':
+          description: View all tickets within a column
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'          
+        '400':
+          description: The request failed
+
+  /board/board_id/column/column_id/ticket:
+    post:
+      tags:
+        - ticket
+      summary: Сreating a new ticket
+      description: This can only be done by the logged in user
+      operationId: CreatingTicket
+      security:
+        - bearerAuth: []    
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Ticket'
+
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400':
+          description: Invalid input
+        '409':
+          description: Such a ticket already exists           
+          
+  /board/board_id/column/column_id/ticket/{ticket_id}:
+    get:
+      tags:
+        - ticket
+      summary: search ticket by ID
+      parameters:
+        - name: ticket_id
+          in: path
+          description: ID ticket
+          required: true
+          schema:
+            type: integer
+            example: 2
+      responses:
+        '200':
+          description: ticket found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'          
+        '400':
+          description: The request failed
+          
+    put:
+      tags:
+        - ticket
+      summary: Update ticket
+      description: This can only be done by the logged in user.
+      operationId: UpdateTicket
+      security:
+        - bearerAuth: []    
+      parameters:
+        - name: ticket_id
+          in: path
+          description: Changing ticket options
+          required: true
+          schema:
+            type: integer
+            example: 3
+      responses:
+        '200':
+          description: ticket parameters changed successfully
+        '400':
+          description: incorrect input
+        '404':
+          description: ticket not found
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Column'
+        description: Changed ticket parameters   
+        
+    delete:
+      tags:
+        - ticket
+      summary: Delete ticket
+      operationId: deleteTicket
+      security:
+        - bearerAuth: []  
+      description: Deleting a ticket by ID
+      parameters:
+        - name: ticket_id
+          in: path
+          description: Ticket ID to delete
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: ticket deleted successfully
+        '404':
+          description: Ticket not found
+        '500':
+          description: Internal Server Error            
+          
+
+  /board/board_id/column/column_id/ticket/ticket_id/comment/list:
+    get:
+      tags:
+        - comment
+      summary: list of comments for the task
+
+      responses:
+        '200':
+          description: View all comments within a ticket
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'          
+        '400':
+          description: The request failed
+          
+  /board/board_id/column/column_id/ticket/ticket_id/comment:          
+    post:
+      tags:
+        - comment
+      summary: Сreating a new comment
+      description: This can only be done by the logged in user
+      operationId: CreatingComment
+      security:
+        - bearerAuth: []    
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comment'
+
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          description: Invalid input
+        '409':
+          description: Such a ticket already exists           
+          
+  /board/board_id/column/column_id/ticket/ticket_id/comment/{comment_id}:
+    get:
+      tags:
+        - comment
+      summary: search comment by ID
+      parameters:
+        - name: comment_id
+          in: path
+          description: ID comment
+          required: true
+          schema:
+            type: integer
+            example: 2
+      responses:
+        '200':
+          description: comment found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'          
+        '400':
+          description: The request failed
+          
+
+    put:
+      tags:
+        - comment
+      summary: Update comment
+      description: This can only be done by the logged in user.
+      operationId: UpdateComment
+      security:
+        - bearerAuth: []    
+      parameters:
+        - name: comment_id
+          in: path
+          description: Changing comment options
+          required: true
+          schema:
+            type: integer
+            example: 3
+
+      responses:
+        '200':
+          description: comment parameters changed successfully
+        '400':
+          description: incorrect input
+        '404':
+          description: comment not found
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comment'
+        description: Changed ticket parameters
+        
+    delete:
+      tags:
+        - comment
+      summary: Delete comment
+      operationId: deleteComment
+      security:
+        - bearerAuth: []  
+      description: Deleting a comment by ID
+      parameters:
+        - name: comment_id
+          in: path
+          description: Comment ID to delete
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Comment deleted successfully
+        '404':
+          description: Comment not found
+        '500':
+          description: Internal Server Error            
+          
+components:
+  schemas:
+    Board:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        title:
+          type: string
+          example: Title Board
+        created_at:
+          type: string
+          format: date-time
+          description: Creation date
+          example: "2021-01-30T08:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Updation date
+          example: "2021-01-30T08:30:00Z"
+        author_id:
+          description: belongs to the author...
+          $ref: '#/components/schemas/User'
+             
+    Column:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        title:
+          type: string
+          example: Title Column
+        created_at:
+          type: string
+          format: date-time
+          description: Creation date
+          example: "2021-01-30T08:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Updation date
+          example: "2021-01-30T08:30:00Z"
+        board_id:
+          description: belongs to the board...
+          $ref: '#/components/schemas/Board'
+          
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        title:
+          type: string
+          example: Title Ticket
+        created_at:
+          type: string
+          format: date-time
+          description: Creation date
+          example: "2021-01-30T08:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Updation date
+          example: "2021-01-30T08:30:00Z"
+        column_id:
+          description: belongs to the column...
+          $ref: '#/components/schemas/Column'
+        description:
+          type: string
+          example: 'task description'
+        author_id:
+          description: task author
+          $ref: '#/components/schemas/User'
+        deadline:
+          type: string
+          example: '12.12.2024'
+        estimate:
+          description: estimation of time to complete a task 
+          type: string
+          example: '1 month'
+        priority:
+          description: degree of importance from 1 to 10 
+          type: string
+          example: '5'
+        performer_id:
+          description: task performer
+          $ref: '#/components/schemas/Column'
+        
+    Users_2_boards:
+      type: object
+      properties:
+        user_id:
+          description: user
+          $ref: '#/components/schemas/User'
+        board_id:
+          description: board
+          $ref: '#/components/schemas/Board'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        login:
+          type: string
+          example: theUser
+        password_hash:
+          type: string
+          example: '123456c'
+        email:
+          type: string
+          example: john@email.com
+        created_at:
+          type: string
+          format: date-time
+          description: Creation date
+          example: "2021-01-30T08:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Updation date
+          example: "2021-01-30T08:30:00Z"
+        is_admin:
+          type: boolean
+          description: User Status
+          
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        created_at:
+          type: string
+          format: date-time
+          description: Creation date
+          example: "2021-01-30T08:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Updation date
+          example: "2021-01-30T08:30:00Z"
+        ticket_id:
+          description: belongs to the board...
+          $ref: '#/components/schemas/Ticket'
+        author_id:
+          description: belongs to the author...
+          $ref: '#/components/schemas/User'
+        content:
+          description: comment on the task
+          type: string
+          example: 'special aspects of the task'
+        
+
+  securitySchemes:
+    bearerAuth:            
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
