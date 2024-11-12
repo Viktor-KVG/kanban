@@ -16,7 +16,9 @@ from src.schemas import (BoardListModel,
                          ColumnPut, 
                          ColumnsModel, 
                          CreateColumn, 
-                         CreateTicket, TicketsModel, 
+                         CreateTicket, PutTicket, TicketId, 
+                         TicketsList, 
+                         TicketsModel, 
                          UserCreate, 
                          UserId, 
                          UserLogin, 
@@ -344,3 +346,75 @@ def create_ticket(data:CreateTicket, db: Session):
     db.commit()
     db.refresh(new_ticket)
     return TicketsModel.from_orm(new_ticket)
+
+
+def tickets_list(data: TicketsList, db: Session):
+    true_board = db.query(BoardModel).filter(BoardModel.id == data.id_board).first()
+    if not true_board:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Board not found'
+        )
+    true_column = db.query(ColumnModel).filter(ColumnModel.id == data.id_column).first()
+    if not true_column:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Column not found'
+        )  
+    true_ticket = db.query(TicketModel).filter(TicketModel.title == data.title).first()
+    if true_ticket:
+        return true_ticket if true_ticket else []
+    
+    all_tickets = db.query(TicketsModel).all()
+    return [TicketsModel.from_orm(tickets) for tickets in all_tickets]
+
+
+def search_ticket_by_id(data: TicketId, db: Session):
+    true_board = db.query(BoardModel).filter(BoardModel.id == data.board_id).first()
+    if not true_board:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Board not found'
+        )
+    true_column = db.query(ColumnModel).filter(ColumnModel.id == data.column_id).first()
+    if not true_column:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Column not found'
+        ) 
+    true_ticket = db.query(TicketModel).filter(TicketModel.id == data.ticket_id).first()
+    if not true_ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Ticket not found'
+        ) 
+    return TicketsModel.from_orm(true_ticket)
+
+
+def search_ticket_by_put(data: PutTicket, board_id: int, column_id: int, ticket_id: int, db: Session):
+    true_board = db.query(BoardModel).filter(BoardModel.id == board_id).first()
+    if not true_board:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Board not found'
+        )
+
+    true_ticket = db.query(TicketModel).filter(TicketModel.column_id == column_id, TicketModel.id == ticket_id).first()
+    if not true_ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Ticket not found'
+        )
+    true_ticket.title = data.title
+    true_ticket.updated_at = datetime.now()
+    true_ticket.description = data.description
+    true_ticket.deadline =data.deadline
+    true_ticket.estimate = data.estimate
+    true_ticket.priority = data.priority
+    true_ticket.performer_id = data.performer_id
+    db.commit()
+    db.refresh(true_ticket)
+
+
+
+
