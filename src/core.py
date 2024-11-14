@@ -1,6 +1,3 @@
-# Сюда нужно поместить функции, реализующие бизнес-логику
-# Например, процедура логина пользователя или его регистрация
-# Эти функции из app.core импортируются в обработчики запросов (роуты) и вызываются
 
 from datetime import datetime
 from hashlib import md5
@@ -298,7 +295,7 @@ def search_column_for_put(data: ColumnPut, board_id: int, column_id: int, db: Se
     return False
 
 
-def search_column_for_delete( board_id: int, column_id: int,db: Session):
+def search_column_for_delete( board_id: int, column_id: int, db: Session):
     board_exists = db.query(BoardModel).filter(BoardModel.id == board_id).first()
     if not board_exists:
         raise HTTPException(
@@ -316,27 +313,41 @@ def search_column_for_delete( board_id: int, column_id: int,db: Session):
 
 '''Ticket'''
 
-def if_exist_ticket(data: CreateTicket, board_id: int, column_id: int, db: Session):
-    board = db.query(BoardModel).filter(BoardModel.id == board_id)
+def if_exist_ticket(data: CreateTicket, db: Session):
+    board = db.query(BoardModel).filter(BoardModel.id == data.board_id).first()
     if not board:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Board not found'
         )
     
-    column = db.query(ColumnModel).filter(ColumnModel.id == column_id)
+    column = db.query(ColumnModel).filter(ColumnModel.id == data.column_id).first()
     if not column:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Column not found'
         )
+
+    exist_author = db.query(UserModel).filter(UserModel.id == data.author_id).first()
+    if not exist_author:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Author for assignment not found'
+        )  
+
+    exist_performer = db.query(UserModel).filter(UserModel.id == data.performer_id).first()
+    if not exist_performer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Performer for assignment not found'
+        )  
     
-    ticket = db.query(TicketModel).filter(TicketModel.title == data.title)
+    ticket = db.query(TicketModel).filter(TicketModel.title == data.title).first()
     return ticket is not None
 
 
 def create_ticket(data:CreateTicket, db: Session):
-    if if_exist_ticket(data, db):
+    if if_exist_ticket(data ,db):
         return False
 
     new_ticket = TicketModel(title=data.title, column_id=data.column_id, description=data.description, author_id=data.author_id,
@@ -365,7 +376,7 @@ def tickets_list(data: TicketsList, db: Session):
     if true_ticket:
         return true_ticket if true_ticket else []
     
-    all_tickets = db.query(TicketsModel).all()
+    all_tickets = db.query(TicketModel).all()
     return [TicketsModel.from_orm(tickets) for tickets in all_tickets]
 
 
@@ -398,6 +409,13 @@ def search_ticket_by_put(data: PutTicket, board_id: int, column_id: int, ticket_
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Board not found'
         )
+    exist_user = db.query(UserModel).filter(UserModel.id == data.performer_id).first()
+    if not exist_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='User for assignment not found'
+        )    
+
 
     true_ticket = db.query(TicketModel).filter(TicketModel.column_id == column_id, TicketModel.id == ticket_id).first()
     if not true_ticket:
@@ -414,7 +432,33 @@ def search_ticket_by_put(data: PutTicket, board_id: int, column_id: int, ticket_
     true_ticket.performer_id = data.performer_id
     db.commit()
     db.refresh(true_ticket)
+    return true_ticket
 
 
+def search_ticket_by_del(data: TicketId, db: Session):
+
+    board = db.query(BoardModel).filter(BoardModel.id == data.board_id).first()
+    if not board:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Board not found'
+        )
+    column = db.query(ColumnModel).filter(ColumnModel.id == data.column_id).first()
+    if not column:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Column not found'
+        )
+    ticket = db.query(TicketModel).filter(TicketModel.id == data.ticket_id).first()
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Ticket not found'
+        )
+    db.delete(ticket)
+    db.commit()
+    return {'details': 'Ticket deleted successfully'}
+
+    
 
 
