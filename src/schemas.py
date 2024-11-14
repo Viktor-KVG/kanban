@@ -59,12 +59,6 @@ class ColumnsModel(BaseModel):
         from_attributes = True
 
 
-# class ColumnList(BaseModel):
-#     board_column: List[ColumnsModel]   
-#     class Config:
-#         from_attributes = True
-
-
 class CreateColumn(BaseModel):
     title: str
     boards: int
@@ -105,7 +99,7 @@ class TicketsModel(BaseModel):
     estimate: float
     priority: str
     performer_id: int  #'UserId'
-    comments_list: List["CommentsModel"] 
+    comments_list: List["CommentsModel"] = [] 
     class Config:
         from_attributes = True
 
@@ -114,11 +108,17 @@ class ListTickets(BaseModel):
     class Config:
         from_attributes = True
 
+class TicketsList(BaseModel):
+    id_board: int
+    id_column: int
+    title: Optional[str] = None
+    class Config:
+        from_attributes = True        
+
 class CreateTicket(BaseModel):
-    id: int
+
     title: str
-    created_at: datetime
-    updated_at: datetime
+    board_id: int 
     column_id: int    #'ColumnModel.id'
     description: str
     author_id: int   #'UserId'
@@ -129,16 +129,19 @@ class CreateTicket(BaseModel):
     class Config:
         from_attributes = True
 
+
 class TicketId(BaseModel):
-    id: int 
+    board_id: int
+    column_id: int
+    ticket_id: int 
     class Config:
         from_attributes = True
 
+
 class PutTicket(BaseModel):
+
     title: str
-    column_id: int   #ColumnModel.id
     description: str
-    author_id: int   #'UserId'
     deadline: str
     estimate: float
     priority: str

@@ -29,18 +29,18 @@ api_router_ticket = APIRouter(
 )
 
 @api_router_ticket.post('/board/board_id/column/column_id/ticket', response_model=TicketsModel)
-def creation_ticket( board: int, column: int, data: CreateTicket, db: Session = Depends(get_db)):
-    if core.if_exist_ticket(data, board, column, db):
+def creation_ticket(data: CreateTicket, db: Session = Depends(get_db)):
+    if core.if_exist_ticket(data, db):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Error in data entry, such column already exists'
+            detail='Error in data entry, such ticket already exists'
         )
     else:
         creation = core.create_ticket(data, db)
         if creation is None:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail='Failed to create column'
+                detail='Failed to create ticket'
                 )
         return creation
 
@@ -68,12 +68,22 @@ def show_tickets_by_id(board_id: int, column_id: int, ticket_id: str = None, db:
 
 
 @api_router_ticket.put('/board/{board_id}/column/{column_id}/ticket/{ticket_id}', response_model=TicketsModel)
-def change_ticket(board_id: int, column_id: int, ticket_id: int, db: Session = Depends(get_db)):
-    ticket_put = core.search_ticket_by_put(board_id, column_id, ticket_id, db)
+def ticket_change(board_id: int, column_id: int, ticket_id: int, data: PutTicket, db: Session = Depends(get_db)):
+    ticket_put = core.search_ticket_by_put(data, board_id, column_id, ticket_id, db)
     if ticket_put:
         return ticket_put
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail='The request failed'
                 )
-    
+
+
+@api_router_ticket.delete('/board/{board_id}/column/{column_id}/ticket/{ticket_id}')
+def ticket_delete(board_id: int, column_id: int, ticket_id: int, db: Session = Depends(get_db)):
+    ticket_del = core.search_ticket_by_del(TicketId(board_id=board_id, column_id=column_id, ticket_id=ticket_id), db)
+    if ticket_del:
+        return ticket_del
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail='The request failed'
+                )
