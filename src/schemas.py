@@ -166,9 +166,21 @@ class ListComment(BaseModel):
     class Config:
         from_attributes = True
 
+class CommentsList(BaseModel):
+    board_id: int
+    column_id: int
+    ticket_id: int 
+    class Config:
+        from_attributes = True    
+
+
+
 class CreateComment(BaseModel):
 
+    board_id: int
+    column_id: int
     ticket_id: int   #'TicketModel.id'
+    author_id: int
     content: str  
     class Config:
         from_attributes = True
