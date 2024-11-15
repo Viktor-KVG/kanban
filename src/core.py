@@ -1,5 +1,4 @@
 
-
 from datetime import datetime
 from hashlib import md5
 import logging
@@ -7,14 +6,14 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from sqlalchemy import select
 
-from src.models import BoardModel, ColumnModel, TicketModel, UserModel
+from src.models import BoardModel, ColumnModel, CommentModel, TicketModel, UserModel
 from src.schemas import (BoardListModel, 
                          ColumnId, 
                          ColumnList, 
                          ColumnPut, 
-                         ColumnsModel, 
-                         CreateColumn, 
-                         CreateTicket, PutTicket, TicketId, 
+                         ColumnsModel, CommentId, CommentsList, CommentsModel, 
+                         CreateColumn, CreateComment, 
+                         CreateTicket, PutComment, PutTicket, TicketId, 
                          TicketsList, 
                          TicketsModel, 
                          UserCreate, 
@@ -460,6 +459,103 @@ def search_ticket_by_del(data: TicketId, db: Session):
     db.commit()
     return {'details': 'Ticket deleted successfully'}
 
+'''Comments'''
+
+def if_exist_comment(data: CreateComment, db: Session):
+    board = db.query(BoardModel).filter(BoardModel.id == data.board_id).first()
+    if not board:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail= 'Board not found'
+        )
+    column = db.query(ColumnModel).filter(ColumnModel.id == data.column_id).first()
+    if not column:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Column not found'
+        )
+
+    ticket = db.query(TicketModel).filter(TicketModel.title == data.ticket_id).first()
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Ticket not found'
+        )
+    comment = db.query(CommentModel).filter(CommentModel.author_id == data.author_id, CommentModel.content == data.content).first()
+    return comment is not None
+
+
+def create_comment(data: CreateComment, db: Session):
+    if if_exist_comment(data, db):
+        return False
+
+    new_comment = CommentModel(ticket_id=data.ticket_id, author_id=data.author_id, content=data.content) 
+
+    db.add(new_comment)
+    db.commit()
+    db.refresh(new_comment)
+    return CommentsModel.from_orm(new_comment)  
+
+def comments_list(data: CommentsList, db: Session ):
+    board = db.query(BoardModel).filter(BoardModel.id == data.board_id).first()
+    if not board:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail= 'Board not found'
+        )
+    column = db.query(ColumnModel).filter(ColumnModel.id == data.column_id).first()
+    if not column:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Column not found'
+        )
+
+    ticket = db.query(TicketModel).filter(TicketModel.title == data.ticket_id).first()
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Ticket not found'
+        )
+
+    all_comments = db.query(CommentModel).filter(CommentModel.ticket_id == data.ticket_id).all()
+    return [CommentsModel.from_orm(comment) for comment in all_comments]
+
+
+def search_comment_by_id(data:CommentId, db: Session):
+    comment_id = db.query(CommentModel).filter(CommentModel.id == data.id).first()
+    if not comment_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Comment not found'
+        )
+    return CommentsModel.from_orm(comment_id)       
+        
+
+def show_comment_by_put(data: PutComment, db: Session):
+    comment_id = db.query(CommentModel).filter(CommentModel.id == data.id).first()
+    if not comment_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Comment not found'
+        )
     
+    comment_id.updated_at = datetime.now()
+    comment_id.content = data.content
+    db.commit()
+    db.refresh(comment_id)
+    return comment_id
+
+
+def search_comment_by_del(data: CommentId, db: Session):
+    comment_del = db.query(CommentModel).filter(CommentModel.id == data.id).first()
+    if not comment_del:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Comment not found'
+        )
+
+    db.delete(comment_del)
+    db.commit()
+    return {'details': 'Comment deleted successfully'}  
 
 

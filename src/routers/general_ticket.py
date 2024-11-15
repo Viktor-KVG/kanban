@@ -57,7 +57,7 @@ def show_tickets_list(board_id: int, column_id: int, title_ticket: str = None, d
     
 
 @api_router_ticket.get('/board/{board_id}/column/{column_id}/ticket/{ticket_id}', response_model=TicketsModel)
-def show_tickets_by_id(board_id: int, column_id: int, ticket_id: str = None, db: Session = Depends(get_db)):
+def show_tickets_by_id(board_id: int, column_id: int, ticket_id: int, db: Session = Depends(get_db)):
     ticket_by_id = core.search_ticket_by_id(TicketId(board_id=board_id,column_id=column_id, ticket_id=ticket_id),db)
     if ticket_by_id:
         return ticket_by_id
