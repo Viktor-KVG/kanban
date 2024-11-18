@@ -284,9 +284,19 @@ class UserUpdate(BaseModel):
     login: str
     password: str
     email: str
-
- 
     class Config:
         from_attributes = True 
 
 
+class UsersAndBoards(BaseModel):
+    user_id: int
+    board_id: int
+    class Config:
+        from_attributes = True        
+
+
+class ResponseUserBoards(BaseModel):
+    user: int
+    boards: List[BoardsModel] = []
+    class Config:
+        from_attributes = True 

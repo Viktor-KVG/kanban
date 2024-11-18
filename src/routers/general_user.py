@@ -38,7 +38,7 @@ common_router = APIRouter(
 )
 api_router = APIRouter(
     prefix="/api",
-    tags=["api"]
+    tags=["api_user"]
 )
 
 

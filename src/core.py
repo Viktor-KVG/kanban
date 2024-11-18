@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from sqlalchemy import select
 
-from src.models import BoardModel, ColumnModel, CommentModel, TicketModel, UserModel
+from src.models import BoardModel, ColumnModel, CommentModel, OtherUsersModel, TicketModel, UserModel
 from src.schemas import (BoardListModel, 
                          ColumnId, 
                          ColumnList, 
@@ -475,7 +475,7 @@ def if_exist_comment(data: CreateComment, db: Session):
             detail='Column not found'
         )
 
-    ticket = db.query(TicketModel).filter(TicketModel.title == data.ticket_id).first()
+    ticket = db.query(TicketModel).filter(TicketModel.id == data.ticket_id).first()
     if not ticket:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -510,7 +510,7 @@ def comments_list(data: CommentsList, db: Session ):
             detail='Column not found'
         )
 
-    ticket = db.query(TicketModel).filter(TicketModel.title == data.ticket_id).first()
+    ticket = db.query(TicketModel).filter(TicketModel.id == data.ticket_id).first()
     if not ticket:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -559,3 +559,10 @@ def search_comment_by_del(data: CommentId, db: Session):
     return {'details': 'Comment deleted successfully'}  
 
 
+'''Users and Boards'''
+
+# показать все записи пользователей, потом показать все доски и обьеденить их в одну таблицу и сохранить ее в таблице OtherUsers
+
+def user_and_boards( db: Session):
+    user_board = db.query(UserModel.id).join(BoardModel.id)
+    all_user_and_board = db.query(OtherUsersModel).all()
