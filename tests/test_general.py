@@ -25,8 +25,8 @@ def clearing_database(connect_to_database):
     connect_to_database.commit()
     logger.info("База данных очищена.")
 
-def test_create_user(connect_to_database, test_client):
 
+def test_create_user(connect_to_database, test_client):
 
     logger.info("Запуск теста создания пользователя...")
     # Очистка БД перед тестом
@@ -111,17 +111,24 @@ def test_search_user_id(connect_to_database, test_client):
     resp_json_second = response_second.json()
     assert response_second.status_code == 400, f"Expected 400, got {response_second.status_code}. Response: {resp_json_second}"
 
-from sqlalchemy import text
 
 def test_clear_database(connect_to_database):
-    session = connect_to_database # Получаем сессию для работы с базой данных
+    session = connect_to_database  # Получаем сессию для работы с базой данных
 
     # Создаем тестовые данные
-    session.execute(text("INSERT INTO \"user\" (login, password_hash, email, created_at, updated_at, is_admin) VALUES ('test_user', 'hashed_password', 'test@example.com', NOW(), NOW(), FALSE)"))
+    test_user = UserModel(
+        login='test_user',
+        password_hash='hashed_password',
+        email='test@example.com',
+        created_at=datetime.datetime.now(),
+        updated_at=datetime.datetime.now(),
+        is_admin=False
+    )
+    session.add(test_user)
     session.commit()
 
     # Проверяем, что данные добавлены
-    results = session.execute(text("SELECT * FROM \"user\"")).fetchall()
+    results = session.query(UserModel).all()
     assert len(results) > 0, "Таблица не должна быть пустой"
 
     # Очищаем базу данных
@@ -130,9 +137,8 @@ def test_clear_database(connect_to_database):
     session.invalidate()  # Сбрасываем кэш сессии после очистки
 
     # Проверяем, что данные удалены
-    results = session.execute(text("SELECT * FROM \"user\"")).fetchall()
+    results = session.query(UserModel).all()
     assert len(results) == 0, "Таблица должна быть пустой после очистки"
-
 
 
 def test_search_users_list_by_id(connect_to_database, test_client):
