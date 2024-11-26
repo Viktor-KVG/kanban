@@ -13,13 +13,12 @@ class BoardsModel(BaseModel):
 
         from_attributes = True
 
+
 class BoardListModel(BaseModel):
     title: Optional[str] = None
 
     class Config:
         from_attributes = True
-
-
 
 
 class CreateBoardModel(BaseModel):
@@ -44,7 +43,6 @@ class PutBoard(BaseModel):
     class Config:
         from_attributes = True
     
-
 
 '''Column''' 
 class ColumnsModel(BaseModel):
@@ -103,10 +101,12 @@ class TicketsModel(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ListTickets(BaseModel):
     tickets_list: List[TicketsModel]
     class Config:
         from_attributes = True
+
 
 class TicketsList(BaseModel):
     id_board: int
@@ -115,8 +115,8 @@ class TicketsList(BaseModel):
     class Config:
         from_attributes = True        
 
-class CreateTicket(BaseModel):
 
+class CreateTicket(BaseModel):
     title: str
     board_id: int 
     column_id: int    #'ColumnModel.id'
@@ -139,7 +139,6 @@ class TicketId(BaseModel):
 
 
 class PutTicket(BaseModel):
-
     title: str
     description: str
     deadline: str
@@ -148,6 +147,7 @@ class PutTicket(BaseModel):
     performer_id: int   #'UserId'    
     class Config:
         from_attributes = True
+
 
 '''Comment'''
 class CommentsModel(BaseModel):
@@ -166,13 +166,13 @@ class ListComment(BaseModel):
     class Config:
         from_attributes = True
 
+
 class CommentsList(BaseModel):
     board_id: int
     column_id: int
     ticket_id: int 
     class Config:
         from_attributes = True    
-
 
 
 class CreateComment(BaseModel):
@@ -184,6 +184,7 @@ class CreateComment(BaseModel):
     content: str  
     class Config:
         from_attributes = True
+
 
 class CommentId(BaseModel):
     id: int
@@ -200,7 +201,6 @@ class PutComment(BaseModel):
 
 '''Users'''
 class UserForAdmin(BaseModel):
-    # model_config = ConfigDict(ignored_types=(IgnoredType,))
     id: int
     login: str
     email: str
@@ -208,12 +208,11 @@ class UserForAdmin(BaseModel):
     updated_at: datetime
     is_admin: bool
     boads: Union[list[BoardsModel], None] = Query(default=None)
-
     class Config:
         from_attributes = True 
 
+
 class UserList(BaseModel):
-    # model_config = ConfigDict(ignored_types=(IgnoredType,))
     id: int
     login: str
     email: str
@@ -221,9 +220,7 @@ class UserList(BaseModel):
     updated_at: datetime
     is_admin: bool
     boards: Optional[list[BoardsModel]] = None
-
     class Config:
-
         from_attributes = True   
  
 
@@ -234,8 +231,7 @@ class UserLoginForAdmin(BaseModel):
 class SearchUsersList(BaseModel):
     id: Optional[int] = None
     login: Optional[str] = None
-    email: Optional[str] = None
-    
+    email: Optional[str] = None   
     class Config:
         from_attributes = True          
 
@@ -244,21 +240,16 @@ class SearchUsersList(BaseModel):
 class UserLogin(BaseModel):
     login: str
     password: str
-
     class Config:
         from_attributes = True 
-
 
 
 class UserCreate(BaseModel):
     login: str
     password: str
-    email: str
-
-   
+    email: str  
     class Config:
         from_attributes = True 
-
 
 
 class UserCreateResponse(BaseModel):
@@ -266,8 +257,6 @@ class UserCreateResponse(BaseModel):
     login: str
     email: str
     is_admin: bool
-
-
     class Config:
         from_attributes = True 
 

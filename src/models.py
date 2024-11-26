@@ -35,10 +35,6 @@ class UserModel(Base):
     is_admin: Mapped[bool] = mapped_column(default=False, nullable=False)
     boards: Mapped[List["BoardModel"]] = relationship(back_populates="user", secondary='others_users', uselist=True)
 
-    # users_many: Mapped[List["UserModel"]] = relationship('UserModel', back_populates="board.boards_many", uselist=True, secondary='others_users',
-    #                                                   primaryjoin=id == "others_users.board_id",
-    #                                                   secondaryjoin=id == "others_users.user_id")
-
 
 class BoardModel(Base):
     __tablename__ = 'board'
@@ -49,10 +45,6 @@ class BoardModel(Base):
     author_id: Mapped[int] = mapped_column(ForeignKey('user.id'))
     user: Mapped["UserModel"] = relationship(back_populates="boards", uselist=False, secondary='others_users')
     board_column: Mapped[List["ColumnModel"]] = relationship(back_populates="board", uselist=True)
-    # boards_many: Mapped[List["BoardModel"]] = relationship('BoardModel', back_populates="user.users_many", uselist=True,
-    #                                                        secondary='others_users',
-    #                                                        primaryjoin=id == "others_users.c.user_id",
-    #                                                        secondaryjoin=id == "others_users.c.board_id")
 
 
 class ColumnModel(Base):

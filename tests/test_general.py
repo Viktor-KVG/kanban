@@ -2,6 +2,7 @@ import datetime
 import hashlib
 import logging
 import os
+import uuid
 from database import get_db
 from models import UserModel, BoardModel
 from src.auth.auth_jwt import user_login
@@ -59,27 +60,24 @@ def test_create_user(connect_to_database, test_client):
     else:
         logger.info(f"Пользователь успешно создан: {resp_json}")
     connect_to_database.commit()
-
-    
+   
     logger.info(f"Статус ответа: {response.status_code}")
     logger.info(f"Ответ: {resp_json}")
 
     # Проверка наличия нового пользователя в базе данных
     added_user = connect_to_database.query(UserModel).filter(UserModel.login == test_user_data["login"]).first()
     
-
     # Логирование количества пользователей после создания
     user_count_after = connect_to_database.query(UserModel).count()
     logger.info(f'Количество пользователей после теста: {user_count_after}')
     
-
     # Проверка статуса ответа и наличия пользователя
     assert response.status_code == 200, f"Expected 200, got {response.status_code}. Response: {resp_json}"
-    # assert user_count_after == user_count_before + 1, "Количество пользователей не увеличилось."
-    # assert added_user is not None, "Ожидался найденный пользователь."
-    
+   
     logger.info(f'Найденный пользователь: {added_user}')
 
+
+    
 def test_search_users_list(connect_to_database, test_client):
 
     response = test_client.get("/api/user/list", params={"login": 'string'})
@@ -138,7 +136,7 @@ def test_clear_database(connect_to_database):
 
 
 def test_search_users_list_by_id(connect_to_database, test_client):
-    user_id = 38 
+    user_id = 38
 
     response = test_client.get("/api/user/list", params={"id": user_id})
     assert response.status_code == 200
@@ -149,11 +147,32 @@ def test_search_users_list_by_id(connect_to_database, test_client):
 
 
 def test_search_users_list_by_email(connect_to_database, test_client):
-    user_email = "test_1727370732.563326@example.com"  # Измените на email вашего тестового пользователя
+    user_email = "test_@examples.com"  
 
     response = test_client.get("/api/user/list", params={"email": user_email})
     assert response.status_code == 200
     users = response.json()
     assert isinstance(users, list)
-    assert len(users) > 0  # Проверяем, что пользователи найдены
-    assert users[0]['email'] == user_email  # Проверяем, что email совпадает    
+    assert len(users) > 0 
+    assert users[0]['email'] == user_email  
+
+
+def test_search_user_by_delete(connect_to_database, test_client):
+    test_user_login = f"test_user_{datetime.datetime.now().timestamp() - 1}"  # Пример логина для поиска
+    added_user = connect_to_database.query(UserModel).filter(UserModel.login == test_user_login).first()
+    
+    if added_user is None:
+        print("Не удалось найти пользователя в базе данных.")
+        return
+    
+    user_id = added_user.id
+    print(f"Используем ID найденного пользователя: {user_id}")
+
+    # Удаляем пользователя
+    response = test_client.delete(f'/api/user/{user_id}')
+    assert response.status_code == 200, f"Ошибка при удалении пользователя: {response.json()}"
+    
+    # Проверка, что пользователь действительно удален
+    deleted_user_response = test_client.get(f'/api/user/{user_id}')
+    assert deleted_user_response.status_code == 404, "Пользователь все еще существует после удаления."
+

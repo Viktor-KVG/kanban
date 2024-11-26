@@ -2,7 +2,8 @@
 from datetime import datetime
 from hashlib import md5
 import logging
-from sqlalchemy.orm import Session
+from typing import Dict, List
+from sqlalchemy.orm import Session, joinedload, selectinload 
 from fastapi import HTTPException, status
 from sqlalchemy import select
 
@@ -13,7 +14,7 @@ from src.schemas import (BoardListModel,
                          ColumnPut, 
                          ColumnsModel, CommentId, CommentsList, CommentsModel, 
                          CreateColumn, CreateComment, 
-                         CreateTicket, PutComment, PutTicket, TicketId, 
+                         CreateTicket, PutComment, PutTicket, ResponseUserBoards, TicketId, 
                          TicketsList, 
                          TicketsModel, 
                          UserCreate, 
@@ -27,7 +28,7 @@ from src.schemas import (BoardListModel,
                          BoardsModel,
                          CreateBoardModel, 
                          PutBoard,
-                         BoardId)
+                         BoardId, UsersAndBoards)
 from src.database import session_factory
 import logging
 
@@ -560,9 +561,41 @@ def search_comment_by_del(data: CommentId, db: Session):
 
 
 '''Users and Boards'''
+def clear_all_entries(db: Session):
 
-# показать все записи пользователей, потом показать все доски и обьеденить их в одну таблицу и сохранить ее в таблице OtherUsers
+    db.query(OtherUsersModel).delete()
+    db.commit()  
 
-def user_and_boards( db: Session):
-    user_board = db.query(UserModel.id).join(BoardModel.id)
-    all_user_and_board = db.query(OtherUsersModel).all()
+
+def user_and_boards(skip: int, limit: int, db: Session) -> List[ResponseUserBoards]:
+    
+    # Получаем всех пользователей с учетом пагинации
+    users = db.query(UserModel).offset(skip).limit(limit).all()
+    response = []
+
+    for user in users:
+        # Получаем доски, принадлежащие конкретному пользователю
+        boards = db.query(BoardModel).filter(BoardModel.author_id == user.id).all()
+        
+        # Если у пользователя есть доски, создаем ответ и добавляем записи в OtherUsersModel
+        if boards:
+            user_boards = ResponseUserBoards(
+                user=user.id,
+                boards=[BoardsModel(id=board.id, title=board.title, author_id=board.author_id) for board in boards]
+            )
+            response.append(user_boards)
+
+            # Добавляем записи в OtherUsersModel только если они не существуют
+            existing_boards = {board.id for board in boards}  # Создаем множество ID досок для быстрого поиска
+            for board_id in existing_boards:
+                if not db.query(OtherUsersModel).filter_by(user_id=user.id, board_id=board_id).first():
+                    db.add(OtherUsersModel(user_id=user.id, board_id=board_id))
+
+    # Коммитим изменения в базе данных
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()  # Откат транзакции в случае ошибки
+        print(f"Ошибка при сохранении в базу данных: {e}")
+
+    return response
