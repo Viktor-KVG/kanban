@@ -35,24 +35,16 @@ class UserModel(Base):
     is_admin: Mapped[bool] = mapped_column(default=False, nullable=False)
     boards: Mapped[List["BoardModel"]] = relationship(back_populates="user", secondary='others_users', uselist=True)
 
-    # users_many: Mapped[List["UserModel"]] = relationship('UserModel', back_populates="board.boards_many", uselist=True, secondary='others_users',
-    #                                                   primaryjoin=id == "others_users.board_id",
-    #                                                   secondaryjoin=id == "others_users.user_id")
-
 
 class BoardModel(Base):
     __tablename__ = 'board'
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(120))   
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now(), nullable=False)
-    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), onupdate=func.now)
+    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now(), onupdate=func.now)
     author_id: Mapped[int] = mapped_column(ForeignKey('user.id'))
     user: Mapped["UserModel"] = relationship(back_populates="boards", uselist=False, secondary='others_users')
     board_column: Mapped[List["ColumnModel"]] = relationship(back_populates="board", uselist=True)
-    # boards_many: Mapped[List["BoardModel"]] = relationship('BoardModel', back_populates="user.users_many", uselist=True,
-    #                                                        secondary='others_users',
-    #                                                        primaryjoin=id == "others_users.c.user_id",
-    #                                                        secondaryjoin=id == "others_users.c.board_id")
 
 
 class ColumnModel(Base):
@@ -60,7 +52,7 @@ class ColumnModel(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(120))
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now())
-    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
+    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
     board_id: Mapped[int] = mapped_column(ForeignKey('board.id'))
     board: Mapped["BoardModel"] = relationship(back_populates="board_column", uselist=False)
     tickets_list: Mapped[List["TicketModel"]] = relationship(back_populates="column", uselist=True)    
@@ -71,7 +63,7 @@ class TicketModel(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(120))
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now())
-    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
+    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
     column_id: Mapped[int] = mapped_column(ForeignKey('column_board.id'))
     description: Mapped[str] = mapped_column(nullable=False)
     author_id: Mapped[int] = mapped_column(ForeignKey('user.id'))
@@ -96,7 +88,7 @@ class CommentModel(Base):
     __tablename__ = 'comment'
     id: Mapped[int] = mapped_column(primary_key=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now())
-    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
+    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
     ticket_id: Mapped[int] = mapped_column(ForeignKey('ticket.id'))
     author_id: Mapped[int] = mapped_column(ForeignKey('user.id'))
     content: Mapped[str] = mapped_column(nullable=True)
