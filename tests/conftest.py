@@ -1,15 +1,13 @@
 import hashlib
 import os
-
 from fastapi.testclient import TestClient
 import pytest
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from src.main import app
 from sqlalchemy.orm import sessionmaker, declarative_base
 from src.database import get_db
 from src.models import UserModel, BoardModel
 import datetime
-from src.database import session_factory
 import logging
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -23,6 +21,7 @@ test_Base = declarative_base()
 
 timestamp_value = datetime.datetime.now()
 
+
 def override_get_db():
     print("Using test database!++++++++++++++++++++++++")
     logger.info(f"Используемая база данных: {TEST_SQL_DATABASE_URL}")
@@ -33,7 +32,7 @@ def override_get_db():
     finally:
         db.close()
 
-
+app.dependency_overrides[get_db] = override_get_db       
 
 
 def create_test_user(session):
@@ -82,20 +81,19 @@ def clear_database(session):
 
 @pytest.fixture(scope="function")
 def connect_to_database():
-
-    os.environ["TEST_SQL_DATABASE_URL"] = "postgresql+psycopg2://postgres:1234567890t@172.24.0.1:7000/postgres_test"
+    # Установите тестовую базу данных
+    os.environ["TEST_SQL_DATABASE_URL"] = TEST_SQL_DATABASE_URL
     test_Base.metadata.create_all(test_engine)
 
     session = test_session_factory()
-    clear_database(session)
-    create_test_user(session)
+    clear_database(session)  # Очистите базу данных перед тестом
+    create_test_user(session)  # Создайте тестовые данные
 
     yield session
 
-
-    session.close()  # Сбрасываем сессию после завершения теста
-    clear_database(session)  # Очищаем базу данных
-    test_Base.metadata.drop_all(test_engine) 
+    session.close()  # Закройте сессию после теста
+    clear_database(session)  # Очистите базу данных после теста
+    test_Base.metadata.drop_all(test_engine)  # Удалите все таблицы
 
 
 @pytest.fixture()

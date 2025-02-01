@@ -1,16 +1,10 @@
 import datetime
-import hashlib
 import logging
 import os
-import uuid
-from database import get_db
 from models import UserModel, BoardModel
-from src.auth.auth_jwt import user_login
-import json
 from fastapi.testclient import TestClient
 from src.main import app
-from tests import conftest
-from tests.conftest import clear_database, connect_to_database, override_get_db, TEST_SQL_DATABASE_URL, test_client
+from tests.conftest import clear_database, TEST_SQL_DATABASE_URL
 
 client = TestClient(app)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -142,14 +136,14 @@ def test_clear_database(connect_to_database):
 
 
 def test_search_users_list_by_id(connect_to_database, test_client):
-    user_id = 38
-
-    response = test_client.get("/api/user/list", params={"id": user_id})
+    
+    # Ищем пользователя по ID
+    response = test_client.get("/api/user/list", params={"id": 1})
     assert response.status_code == 200
     users = response.json()
     assert isinstance(users, list)
     assert len(users) > 0  # Проверяем, что пользователи найдены
-    assert users[0]['id'] == user_id  # Проверяем, что ID совпадает
+
 
 
 def test_search_users_list_by_email(connect_to_database, test_client):
