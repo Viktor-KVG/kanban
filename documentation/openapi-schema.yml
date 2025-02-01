@@ -382,7 +382,7 @@ paths:
             example: 3
       responses:
         '200':
-          description: пboard parameters changed successfully
+          description: board parameters changed successfully
         '400':
           description: incorrect input
         '404':
@@ -461,8 +461,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Column'
-        '400':
-          description: Invalid input
+
         '409':
           description: Such a column already exists           
           
@@ -509,7 +508,7 @@ paths:
             example: 3
       responses:
         '200':
-          description: пboard parameters changed successfully
+          description: board parameters changed successfully
         '400':
           description: incorrect input
         '404':
