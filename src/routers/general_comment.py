@@ -1,24 +1,16 @@
-from typing import List
+
 from fastapi import APIRouter
 from src import core
-from src.auth import auth_jwt
-from src.schemas import (ColumnId, 
-                         ColumnList, 
-                         ColumnPut, 
-                         ColumnsModel, CommentId, CommentsList, CommentsModel, 
-                         CreateColumn, CreateComment, 
-                         CreateTicket, PutComment, PutTicket, 
-                         SearchUsersList, TicketId, TicketsList, 
-                         TicketsModel, 
-                         Token, 
-                         BoardsModel, 
-                         CreateBoardModel,
-                         BoardId, 
-                         PutBoard, 
-                         BoardListModel)
-from fastapi import APIRouter, Depends, Query,  status, HTTPException
+from src.schemas import ( 
+                          CommentId, 
+                          CommentsList, 
+                          CommentsModel, 
+                          CreateComment, 
+                         PutComment 
+                         )
+from fastapi import APIRouter, Depends, status, HTTPException
 import logging
-from src.database import session_factory, get_db
+from src.database import get_db
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)

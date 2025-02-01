@@ -1,20 +1,9 @@
-"""
-Общий файл для всех роутеров. Если возникнет необходимость, то его можно поделить на отдельные файлы по сгруппированным endpoint'ам
-Например: routers/user.py, routers/board.py и т.д.
-"""
 
-import hashlib
-from typing import Any, List, Optional
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import UJSONResponse
-import jwt
-from sqlalchemy import select
+
+from typing import List
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, Query,  status, HTTPException
-
-# from src.auth.auth_jwt import user_login
-from src.database import session_factory, get_db
-from src.models import UserModel
+from fastapi import APIRouter, Depends, status, HTTPException
+from src.database import get_db
 from src.schemas import (
     Token,
     UserId,

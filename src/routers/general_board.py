@@ -1,14 +1,14 @@
 from typing import List
 from fastapi import APIRouter
 from src import core
-from src.auth import auth_jwt
-from src.schemas import (SearchUsersList, Token, 
+from src.schemas import ( 
                          BoardsModel, 
                          CreateBoardModel,
                          BoardId, 
                          PutBoard, 
-                         BoardListModel)
-from fastapi import APIRouter, Depends, Query,  status, HTTPException
+                         BoardListModel
+                         )
+from fastapi import APIRouter, status, HTTPException
 import logging
 
 logger = logging.getLogger(__name__)

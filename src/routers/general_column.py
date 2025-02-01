@@ -1,19 +1,12 @@
-from typing import List
+
 from fastapi import APIRouter
 from src import core
-from src.auth import auth_jwt
 from src.schemas import (ColumnId, 
                          ColumnList, 
                          ColumnPut, 
                          ColumnsModel, 
                          CreateColumn, 
-                         SearchUsersList, 
-                         Token, 
-                         BoardsModel, 
-                         CreateBoardModel,
-                         BoardId, 
-                         PutBoard, 
-                         BoardListModel)
+)
 from fastapi import APIRouter, Depends, Query,  status, HTTPException
 import logging
 from src.database import session_factory, get_db
