@@ -26,4 +26,4 @@
   - комментарии
 11) CRUD для комментариев
 12) Иметь возможность перемещать тикет как по столбцам в рамках доски, так и по разным доскам
-13) Технологии: Docker + docker compose, postgresql 14, python3.9, pip3, fastapi, sqlalchemy, alembic, pydantic, pytest
+13) Технологии: Docker + docker compose, postgresql 14, python3.11, pip3, fastapi, sqlalchemy, alembic, pydantic, pytest
