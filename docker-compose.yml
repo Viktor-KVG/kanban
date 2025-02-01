@@ -29,12 +29,6 @@ services:
       - 'POSTGRES_USER=postgres'
       - 'POSTGRES_DB=postgres '      
 
-    # volumes:
-    #   - /home/vitass/Desktop/kanban valume/postgres:/var/lib/postgresql/data
-
- 
-  
-
   src:
     build: .
 
@@ -46,18 +40,12 @@ services:
     ports:
        - '8000:8000'
 
-    # volumes:
-    #    -  /home/vitass/Desktop/kanban valume/app   
 
     command: python ./main.py
 
     tty: true
     stdin_open: true
-    # # Опция --reload для uvicorn будет перезагружать сервис при изменении исходников. Использовать только при разработке!
-    # command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
-
-    # network_mode: host
     depends_on:
       - db
       - test_db
